@@ -24,12 +24,12 @@ _git_prune_branches() {
     [ -z "$branch" ] && continue
     i=$((i + 1))
     if git branch -D "$branch" >/dev/null 2>&1; then
-      status="OK"
+      branch_status="OK"
     else
-      status="KO"
+      branch_status="KO"
     fi
     bar=$(load_bar "$i" "$local_total"); bar=${bar%$'\n'}
-    printf '%s %s %s\n' "$bar" "$branch" "$status"
+    printf '%s %s %s\n' "$bar" "$branch" "$branch_status"
   done <<< "$local_branches"
 
   # Delete remote branches on origin and report progress
@@ -42,12 +42,12 @@ _git_prune_branches() {
     [ -z "$branch" ] && continue
     i=$((i + 1))
     if git push "$remote" --delete "$branch" >/dev/null 2>&1; then
-      status="OK"
+      branch_status="OK"
     else
-      status="KO"
+      branch_status="KO"
     fi
     bar=$(load_bar "$i" "$remote_total"); bar=${bar%$'\n'}
-    printf '%s %s %s %s %s\n' "$bar" "$remote" "$url" "$branch" "$status"
+    printf '%s %s %s %s %s\n' "$bar" "$remote" "$url" "$branch" "$branch_status"
   done <<< "$remote_branches"
 }
 
