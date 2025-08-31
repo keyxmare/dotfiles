@@ -5,7 +5,7 @@ alias_git_prune_branches_desc='Fetch all remote branches, check out main, and de
 alias_aliases_desc='List all defined aliases with descriptions'
 
 _git_prune_branches() {
-  git fetch --all --prune
+  git fetch --all --prune --quiet
   if [ "$(git rev-parse --abbrev-ref HEAD)" != "main" ]; then
     git checkout main
   fi
