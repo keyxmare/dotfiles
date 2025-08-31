@@ -39,10 +39,9 @@ _git_prune_branches() {
       else
         branch_status="KO"
       fi
-      bar=$(load_bar "$i" "$remote_total"); bar=${bar%$'\n'}
-      print_over '%s %s %s %s %s' "$bar" "$remote" "$url" "$branch" "$branch_status"
+      bar=$(load_bar "$i" "$remote_total"); bar=${bar#$'\r'}; bar=${bar%$'\n'}
+      printf '%s %s %s\n%s\n[%s]\n' "$bar" "$remote" "$url" "$branch" "$branch_status"
     done
-    printf '\n'
   fi
 
   # Delete local branches and report progress
@@ -60,10 +59,9 @@ _git_prune_branches() {
       else
         branch_status="KO"
       fi
-      bar=$(load_bar "$i" "$local_total"); bar=${bar%$'\n'}
-      print_over '%s %s %s %s %s' "$bar" "local" "N/A" "$branch" "$branch_status"
+      bar=$(load_bar "$i" "$local_total"); bar=${bar#$'\r'}; bar=${bar%$'\n'}
+      printf '%s %s %s\n%s\n[%s]\n' "$bar" "local" "N/A" "$branch" "$branch_status"
     done
-    printf '\n'
   fi
 }
 
