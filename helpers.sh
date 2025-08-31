@@ -5,7 +5,7 @@
 # Optionally move up multiple lines before printing.
 # Usage: print_over [LINES] FORMAT [ARGS...]
 print_over() {
-  local lines=0 fmt
+  local lines=0 fmt output
   if [[ $1 =~ ^[0-9]+$ ]]; then
     lines=$1
     shift
@@ -20,7 +20,12 @@ print_over() {
   printf '\033[J'
   if [[ $# -gt 0 ]]; then
     # shellcheck disable=SC2059
-    printf "$fmt" "$@"
+    if printf -v output "$fmt" "$@" 2>/dev/null; then
+      printf '%b' "$output"
+    else
+      printf '%b' "$fmt"
+      printf ' %b' "$@"
+    fi
   else
     printf '%b' "$fmt"
   fi
