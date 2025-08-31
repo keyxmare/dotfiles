@@ -1,13 +1,25 @@
 #!/usr/bin/env bash
 # General shell helper functions
 
-# Print formatted text overwriting the current line.
-# Usage: print_over FORMAT [ARGS...]
+# Print formatted text overwriting previous output.
+# Optionally move up multiple lines before printing.
+# Usage: print_over [LINES] FORMAT [ARGS...]
 print_over() {
-  local fmt=$1
+  local lines=0 fmt
+  if [[ $1 =~ ^[0-9]+$ ]]; then
+    lines=$1
+    shift
+  fi
+  fmt=$1
   shift
+  if (( lines > 0 )); then
+    printf '\033[%dF' "$lines"
+  else
+    printf '\r'
+  fi
+  printf '\033[J'
   # shellcheck disable=SC2059
-  printf "\r$fmt\033[K" "$@"
+  printf "$fmt" "$@"
 }
 
 # Display a simple progress bar.
