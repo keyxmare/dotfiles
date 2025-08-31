@@ -7,11 +7,20 @@ REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Mirror repository files to the local share directory
 "$REPO_DIR/sync.sh"
 
-PROFILE="$HOME/.bashrc"
+PROFILES=("$HOME/.bashrc" "$HOME/.zshrc")
+ALIASES_FILE="$HOME/.local/share/dotfiles/aliases/git.sh"
 # shellcheck disable=SC2016
 ALIASES_SNIPPET='[ -f "$HOME/.local/share/dotfiles/aliases/git.sh" ] && source "$HOME/.local/share/dotfiles/aliases/git.sh"'
 
-touch "$PROFILE"
-if ! grep -Fqx "$ALIASES_SNIPPET" "$PROFILE"; then
-  echo "$ALIASES_SNIPPET" >> "$PROFILE"
+for PROFILE in "${PROFILES[@]}"; do
+  touch "$PROFILE"
+  if ! grep -Fqx "$ALIASES_SNIPPET" "$PROFILE"; then
+    echo "$ALIASES_SNIPPET" >> "$PROFILE"
+  fi
+done
+
+# Load aliases immediately for local use
+if [ -f "$ALIASES_FILE" ]; then
+  # shellcheck disable=SC1090
+  source "$ALIASES_FILE"
 fi
