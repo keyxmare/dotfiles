@@ -1,8 +1,19 @@
 #!/usr/bin/env bash
-set -euo pipefail
+
+# Enable strict mode for both Bash and Zsh
+set -e
+set -u
+set -o pipefail
 
 # Synchronize repository scripts to local environment
-REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Determine the directory containing this script for Bash and Zsh
+if [ -n "${BASH_SOURCE[0]:-}" ]; then
+  SCRIPT_PATH="${BASH_SOURCE[0]}"
+else
+  # shellcheck disable=SC2296  # zsh-specific parameter expansion
+  SCRIPT_PATH="${(%):-%x}"
+fi
+REPO_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
 DEST="${HOME}/.local/share/dotfiles"
 
 mkdir -p "$DEST"
