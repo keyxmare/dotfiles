@@ -4,7 +4,9 @@
 # Synchronize repository scripts to local environment or perform installation
 
 if [ -n "${ZSH_VERSION:-}" ]; then
-  emulate -L sh
+  # Use global emulation to avoid scoping functions to the file when sourced under zsh.
+  # This ensures helper functions like configure_profiles persist in the caller's environment.
+  emulate sh
   set -e
   set -u
   set -o pipefail
