@@ -12,8 +12,14 @@ _git_prune_branches() {
 
   # Ensure progress bar helper is available
   if ! type load_bar >/dev/null 2>&1; then
-    # shellcheck disable=SC1090
-    source "$(dirname "${BASH_SOURCE[0]}")/../helpers.sh"
+    if [ -n "$BASH_VERSION" ]; then
+      script_source="${BASH_SOURCE[0]}"
+    else
+      eval 'script_source="${(%):-%x}"'
+    fi
+    dotfiles_root="$(cd "$(dirname "$script_source")/.." && pwd)"
+    # shellcheck disable=SC1090,SC1091
+    source "$dotfiles_root/helpers.sh"
   fi
 
   # Delete remote branches on origin and report progress
@@ -29,12 +35,12 @@ _git_prune_branches() {
       [ -z "$branch" ] && continue
       i=$((i + 1))
       if git push "$remote" --delete "$branch" >/dev/null 2>&1; then
-        status="OK"
+        branch_status="OK"
       else
-        status="KO"
+        branch_status="KO"
       fi
       bar=$(load_bar "$i" "$remote_total"); bar=${bar%$'\n'}
-      print_over '%s %s %s %s %s' "$bar" "$remote" "$url" "$branch" "$status"
+      print_over '%s %s %s %s %s' "$bar" "$remote" "$url" "$branch" "$branch_status"
     done
     printf '\n'
   fi
@@ -50,12 +56,12 @@ _git_prune_branches() {
       [ -z "$branch" ] && continue
       i=$((i + 1))
       if git branch -D "$branch" >/dev/null 2>&1; then
-        status="OK"
+        branch_status="OK"
       else
-        status="KO"
+        branch_status="KO"
       fi
       bar=$(load_bar "$i" "$local_total"); bar=${bar%$'\n'}
-      print_over '%s %s %s %s %s' "$bar" "local" "N/A" "$branch" "$status"
+      print_over '%s %s %s %s %s' "$bar" "local" "N/A" "$branch" "$branch_status"
     done
     printf '\n'
   fi
