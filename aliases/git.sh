@@ -5,9 +5,15 @@ alias_git_prune_branches_desc='fetch all remote branches, check out main, and de
 alias_aliases_desc='list all defined aliases with descriptions'
 
 _aliases() {
+  local bold reset
+  bold=$(printf '\033[1m')
+  reset=$(printf '\033[0m')
+  printf '%b%-20s %-40s %s%b\n' "$bold" "Alias" "Command" "Description" "$reset"
+  printf '%-20s %-40s %s\n' "-----" "-------" "-----------"
   alias -p | while IFS= read -r line; do
-    local name desc
-    name=$(printf '%s' "$line" | sed -n "s/^alias \([^=]*\)=.*/\1/p")
+    local name value desc
+    name=$(printf '%s' "$line" | cut -d= -f1 | sed "s/^alias //")
+    value=$(printf '%s' "$line" | cut -d= -f2- | sed "s/^'//; s/'$//")
     case "$name" in
       git-prune-branches)
         desc=$alias_git_prune_branches_desc
@@ -19,7 +25,7 @@ _aliases() {
         desc=''
         ;;
     esac
-    printf '%s # %s\n' "$line" "$desc"
+    printf '%-20s %-40s %s\n' "$name" "$value" "$desc"
   done
 }
 
