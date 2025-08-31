@@ -17,34 +17,38 @@ _git_prune_branches() {
   fi
 
   # Delete local branches except main with progress
-  mapfile -t local_branches < <(git for-each-ref --format='%(refname:short)' refs/heads | grep -v '^main$')
-  local_total=${#local_branches[@]}
-  for i in "${!local_branches[@]}"; do
-    branch=${local_branches[$i]}
+  local_branches=$(git for-each-ref --format='%(refname:short)' refs/heads | grep -v '^main$')
+  local_total=$(printf '%s\n' "$local_branches" | sed '/^$/d' | wc -l)
+  i=0
+  while IFS= read -r branch; do
+    [ -z "$branch" ] && continue
+    i=$((i + 1))
     if git branch -D "$branch" >/dev/null 2>&1; then
       status="OK"
     else
       status="KO"
     fi
-    bar=$(load_bar $((i + 1)) "$local_total"); bar=${bar%$'\n'}
+    bar=$(load_bar "$i" "$local_total"); bar=${bar%$'\n'}
     printf '%s %s %s\n' "$bar" "$branch" "$status"
-  done
+  done <<< "$local_branches"
 
   # Delete remote branches on origin and report progress
   remote="origin"
   url=$(git remote get-url "$remote" 2>/dev/null || echo "N/A")
-  mapfile -t remote_branches < <(git for-each-ref --format='%(refname:strip=3)' "refs/remotes/$remote" | grep -vE '^(HEAD|main)$')
-  remote_total=${#remote_branches[@]}
-  for i in "${!remote_branches[@]}"; do
-    branch=${remote_branches[$i]}
+  remote_branches=$(git for-each-ref --format='%(refname:strip=3)' "refs/remotes/$remote" | grep -vE '^(HEAD|main)$')
+  remote_total=$(printf '%s\n' "$remote_branches" | sed '/^$/d' | wc -l)
+  i=0
+  while IFS= read -r branch; do
+    [ -z "$branch" ] && continue
+    i=$((i + 1))
     if git push "$remote" --delete "$branch" >/dev/null 2>&1; then
       status="OK"
     else
       status="KO"
     fi
-    bar=$(load_bar $((i + 1)) "$remote_total"); bar=${bar%$'\n'}
+    bar=$(load_bar "$i" "$remote_total"); bar=${bar%$'\n'}
     printf '%s %s %s %s %s\n' "$bar" "$remote" "$url" "$branch" "$status"
-  done
+  done <<< "$remote_branches"
 }
 
 _aliases() {
