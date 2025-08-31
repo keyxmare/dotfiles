@@ -18,8 +18,12 @@ print_over() {
     printf '\r'
   fi
   printf '\033[J'
-  # shellcheck disable=SC2059
-  printf "$fmt" "$@"
+  if [[ $# -gt 0 ]]; then
+    # shellcheck disable=SC2059
+    printf "$fmt" "$@"
+  else
+    printf '%b' "$fmt"
+  fi
 }
 
 # Display a simple progress bar.
