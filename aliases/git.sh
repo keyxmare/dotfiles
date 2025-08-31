@@ -3,6 +3,7 @@
 
 alias_git_prune_branches_desc='Fetch all remote branches, check out main, and delete all other local and remote branches'
 alias_aliases_desc='List all defined aliases with descriptions'
+alias_git_squash_first_desc='Squash all commits onto the first commit and force push to origin'
 
 _git_prune_branches() {
   git fetch --all --prune --quiet
@@ -44,6 +45,9 @@ _aliases() {
       aliases)
         desc=$alias_aliases_desc
         ;;
+      git-squash-first)
+        desc=$alias_git_squash_first_desc
+        ;;
       *)
         desc=''
         ;;
@@ -59,6 +63,16 @@ _aliases() {
   done
 }
 
+_git_squash_first() {
+  local first_commit current_branch
+  first_commit=$(git rev-list --max-parents=0 HEAD)
+  git reset --soft "$first_commit"
+  git commit --amend -C "$first_commit"
+  current_branch=$(git rev-parse --abbrev-ref HEAD)
+  git push --force-with-lease origin "$current_branch"
+}
+
 alias git-prune-branches='_git_prune_branches'
 alias aliases='_aliases'
+alias git-squash-first='_git_squash_first'
 
