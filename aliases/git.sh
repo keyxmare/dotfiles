@@ -10,63 +10,20 @@ _git_prune_branches() {
     git checkout main
   fi
 
-  # Ensure progress bar helper is available
-  if ! type load_bar >/dev/null 2>&1; then
-    if [ -n "$BASH_VERSION" ]; then
-      script_source="${BASH_SOURCE[0]}"
-    else
-      eval 'script_source="${(%):-%x}"'
-    fi
-    dotfiles_root="$(cd "$(dirname "$script_source")/.." && pwd)"
-    # shellcheck disable=SC1090,SC1091
-    source "$dotfiles_root/helpers.sh"
-  fi
-
-  # Delete remote branches on origin and report progress
   remote="origin"
-  url=$(git remote get-url "$remote" 2>/dev/null || echo "N/A")
-  remote_branches=$(git for-each-ref --format='%(refname:strip=3)' "refs/remotes/$remote" | grep -vE '^(HEAD|main)$')
-  remote_total=$(printf '%s\n' "$remote_branches" | sed '/^$/d' | wc -l)
-  if [ "$remote_total" -eq 0 ]; then
-    printf 'No remote branches to prune on %s\n' "$remote"
-  else
-    i=0
-    lines_to_over=0
-    while IFS= read -r branch; do
-      [ -z "$branch" ] && continue
-      i=$((i + 1))
-      if git push "$remote" --delete "$branch" >/dev/null 2>&1; then
-        branch_status="OK"
-      else
-        branch_status="KO"
-      fi
-      bar=$(load_bar "$i" "$remote_total"); bar=${bar#$'\r'}; bar=${bar%$'\n'}
-      print_over "$lines_to_over" '%s %s %s\n%s\n[%s]\n' "$bar" "$remote" "$url" "$branch" "$branch_status"
-      lines_to_over=3
-    done <<< "$remote_branches"
-  fi
+  git for-each-ref --format='%(refname:strip=3)' "refs/remotes/$remote" \
+    | grep -vE '^(HEAD|main)$' \
+    | while IFS= read -r branch; do
+        [ -z "$branch" ] && continue
+        git push "$remote" --delete "$branch"
+      done
 
-  # Delete local branches and report progress
-  local_branches=$(git for-each-ref --format='%(refname:strip=2)' refs/heads | grep -vE '^(main)$')
-  local_total=$(printf '%s\n' "$local_branches" | sed '/^$/d' | wc -l)
-  if [ "$local_total" -eq 0 ]; then
-    printf 'No local branches to prune\n'
-  else
-    i=0
-    lines_to_over=0
-    while IFS= read -r branch; do
-      [ -z "$branch" ] && continue
-      i=$((i + 1))
-      if git branch -D "$branch" >/dev/null 2>&1; then
-        branch_status="OK"
-      else
-        branch_status="KO"
-      fi
-      bar=$(load_bar "$i" "$local_total"); bar=${bar#$'\r'}; bar=${bar%$'\n'}
-      print_over "$lines_to_over" '%s %s %s\n%s\n[%s]\n' "$bar" "local" "N/A" "$branch" "$branch_status"
-      lines_to_over=3
-    done <<< "$local_branches"
-  fi
+  git for-each-ref --format='%(refname:strip=2)' refs/heads \
+    | grep -vE '^(main)$' \
+    | while IFS= read -r branch; do
+        [ -z "$branch" ] && continue
+        git branch -D "$branch"
+      done
 }
 
 _aliases() {

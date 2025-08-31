@@ -1,36 +1,6 @@
 #!/usr/bin/env bash
 # General shell helper functions
 
-# Print formatted text overwriting previous output.
-# Optionally move up multiple lines before printing.
-# Usage: print_over [LINES] FORMAT [ARGS...]
-print_over() {
-  local lines=0 fmt output
-  if [[ $1 =~ ^[0-9]+$ ]]; then
-    lines=$1
-    shift
-  fi
-  fmt=$1
-  shift
-  if (( lines > 0 )); then
-    printf '\033[%dF' "$lines"
-  else
-    printf '\r'
-  fi
-  printf '\033[J'
-  if [[ $# -gt 0 ]]; then
-    # shellcheck disable=SC2059
-    if printf -v output "$fmt" "$@" 2>/dev/null; then
-      printf '%b' "$output"
-    else
-      printf '%b' "$fmt"
-      printf ' %b' "$@"
-    fi
-  else
-    printf '%b' "$fmt"
-  fi
-}
-
 # Display a simple progress bar.
 # Usage: load_bar CURRENT TOTAL [WIDTH]
 # WIDTH defaults to 50 when not provided.
