@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 repo_root="$(git rev-parse --show-toplevel)"
-"$repo_root/sync.sh"
+# Run sync silently
+"$repo_root/sync.sh" >/dev/null 2>&1
+
+# Display code version from synced copy
+version_file="$HOME/.local/share/dotfiles/.version"
+if [ -f "$version_file" ]; then
+  echo "Code version: $(cat "$version_file")"
+fi
