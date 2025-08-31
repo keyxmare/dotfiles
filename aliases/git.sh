@@ -11,20 +11,18 @@ _git_prune_branches() {
 }
 
 _aliases() {
-  local bold reset header_color alias_color command_color desc_color
-  local line name value desc
+  local bold reset header_color alias_color desc_color bullet_color
+  local line name desc
   bold=$(printf '\033[1m')
   reset=$(printf '\033[0m')
   header_color=$(printf '\033[36m')
   alias_color=$(printf '\033[32m')
-  command_color=$(printf '\033[34m')
   desc_color=$(printf '\033[33m')
+  bullet_color=$(printf '\033[35m')
 
-  printf '%b%-20s %-40s %s%b\n' "$bold$header_color" "Alias" "Command" "Description" "$reset"
-  printf '%b%-20s %-40s %s%b\n' "$header_color" "-----" "-------" "-----------" "$reset"
+  printf '%b%s%b\n' "$bold$header_color" "✨ Alias disponibles" "$reset"
   alias | while IFS= read -r line; do
     name=$(printf '%s' "$line" | cut -d= -f1 | sed "s/^alias //")
-    value=$(printf '%s' "$line" | cut -d= -f2- | sed "s/^'//; s/'$//")
     case "$name" in
       git-prune-branches)
         desc=$alias_git_prune_branches_desc
@@ -36,10 +34,16 @@ _aliases() {
         desc=''
         ;;
     esac
-    printf '%b%-20s%b %b%-40s%b %b%s%b\n' \
-      "$alias_color" "$name" "$reset" \
-      "$command_color" "$value" "$reset" \
-      "$desc_color" "$desc" "$reset"
+    if [ -n "$desc" ]; then
+      printf '  %b•%b %b%s%b %b→ %s%b\n' \
+        "$bullet_color" "$reset" \
+        "$alias_color" "$name" "$reset" \
+        "$desc_color" "$desc" "$reset"
+    else
+      printf '  %b•%b %b%s%b\n' \
+        "$bullet_color" "$reset" \
+        "$alias_color" "$name" "$reset"
+    fi
   done
 }
 
