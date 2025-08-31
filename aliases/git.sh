@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Git related aliases
+# Shell aliases
 
 alias_git_prune_branches_desc='Fetch all remote branches, check out main, and delete all other local and remote branches'
 alias_aliases_desc='List all defined aliases with descriptions'
@@ -50,3 +50,4 @@ _aliases() {
 
 alias git-prune-branches='_git_prune_branches'
 alias aliases='_aliases'
+

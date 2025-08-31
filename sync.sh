@@ -27,9 +27,14 @@ sync_repo() {
   rsync -av --delete --exclude '.git/' "$REPO_DIR"/ "$DEST"/
 
   ALIASES_FILE="$DEST/aliases/git.sh"
+  HELPERS_FILE="$DEST/helpers.sh"
   if [ -f "$ALIASES_FILE" ]; then
     # shellcheck disable=SC1090
     source "$ALIASES_FILE"
+  fi
+  if [ -f "$HELPERS_FILE" ]; then
+    # shellcheck disable=SC1090
+    source "$HELPERS_FILE"
   fi
 }
 
