@@ -15,7 +15,7 @@ ALIASES_SNIPPET='[ -f "$HOME/.local/share/dotfiles/aliases/git.sh" ] && source "
 for PROFILE in "${PROFILES[@]}"; do
   touch "$PROFILE"
   if ! grep -Fqx "$ALIASES_SNIPPET" "$PROFILE"; then
-    echo "$ALIASES_SNIPPET" >> "$PROFILE"
+    printf '\n%s\n' "$ALIASES_SNIPPET" >> "$PROFILE"
   fi
 done
 
