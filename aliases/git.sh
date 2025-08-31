@@ -9,10 +9,42 @@ _git_prune_branches() {
   if [ "$(git rev-parse --abbrev-ref HEAD)" != "main" ]; then
     git checkout main
   fi
-  git branch --list | grep -vE '^\*?\s*main$' | xargs -r git branch -D
-  git for-each-ref --format='%(refname:strip=3)' refs/remotes/origin \
-    | grep -vE '^(HEAD|main)$' \
-    | xargs -r -I {} git push origin --delete {}
+
+  # Ensure progress bar helper is available
+  if ! type load_bar >/dev/null 2>&1; then
+    # shellcheck disable=SC1090
+    source "$(dirname "${BASH_SOURCE[0]}")/../helpers.sh"
+  fi
+
+  # Delete local branches except main with progress
+  mapfile -t local_branches < <(git for-each-ref --format='%(refname:short)' refs/heads | grep -v '^main$')
+  local_total=${#local_branches[@]}
+  for i in "${!local_branches[@]}"; do
+    branch=${local_branches[$i]}
+    if git branch -D "$branch" >/dev/null 2>&1; then
+      status="OK"
+    else
+      status="KO"
+    fi
+    bar=$(load_bar $((i + 1)) "$local_total"); bar=${bar%$'\n'}
+    printf '%s %s %s\n' "$bar" "$branch" "$status"
+  done
+
+  # Delete remote branches on origin and report progress
+  remote="origin"
+  url=$(git remote get-url "$remote" 2>/dev/null || echo "N/A")
+  mapfile -t remote_branches < <(git for-each-ref --format='%(refname:strip=3)' "refs/remotes/$remote" | grep -vE '^(HEAD|main)$')
+  remote_total=${#remote_branches[@]}
+  for i in "${!remote_branches[@]}"; do
+    branch=${remote_branches[$i]}
+    if git push "$remote" --delete "$branch" >/dev/null 2>&1; then
+      status="OK"
+    else
+      status="KO"
+    fi
+    bar=$(load_bar $((i + 1)) "$remote_total"); bar=${bar%$'\n'}
+    printf '%s %s %s %s %s\n' "$bar" "$remote" "$url" "$branch" "$status"
+  done
 }
 
 _aliases() {
