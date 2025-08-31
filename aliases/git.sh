@@ -31,7 +31,8 @@ _git_prune_branches() {
     printf 'No remote branches to prune on %s\n' "$remote"
   else
     i=0
-    printf '%s\n' "$remote_branches" | while IFS= read -r branch; do
+    lines_to_over=0
+    while IFS= read -r branch; do
       [ -z "$branch" ] && continue
       i=$((i + 1))
       if git push "$remote" --delete "$branch" >/dev/null 2>&1; then
@@ -40,8 +41,9 @@ _git_prune_branches() {
         branch_status="KO"
       fi
       bar=$(load_bar "$i" "$remote_total"); bar=${bar#$'\r'}; bar=${bar%$'\n'}
-      printf '%s %s %s\n%s\n[%s]\n' "$bar" "$remote" "$url" "$branch" "$branch_status"
-    done
+      print_over "$lines_to_over" '%s %s %s\n%s\n[%s]\n' "$bar" "$remote" "$url" "$branch" "$branch_status"
+      lines_to_over=3
+    done <<< "$remote_branches"
   fi
 
   # Delete local branches and report progress
@@ -51,7 +53,8 @@ _git_prune_branches() {
     printf 'No local branches to prune\n'
   else
     i=0
-    printf '%s\n' "$local_branches" | while IFS= read -r branch; do
+    lines_to_over=0
+    while IFS= read -r branch; do
       [ -z "$branch" ] && continue
       i=$((i + 1))
       if git branch -D "$branch" >/dev/null 2>&1; then
@@ -60,8 +63,9 @@ _git_prune_branches() {
         branch_status="KO"
       fi
       bar=$(load_bar "$i" "$local_total"); bar=${bar#$'\r'}; bar=${bar%$'\n'}
-      printf '%s %s %s\n%s\n[%s]\n' "$bar" "local" "N/A" "$branch" "$branch_status"
-    done
+      print_over "$lines_to_over" '%s %s %s\n%s\n[%s]\n' "$bar" "local" "N/A" "$branch" "$branch_status"
+      lines_to_over=3
+    done <<< "$local_branches"
   fi
 }
 
