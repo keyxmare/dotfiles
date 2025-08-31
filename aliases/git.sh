@@ -6,8 +6,10 @@ alias_aliases_desc='List all defined aliases with descriptions'
 
 _git_prune_branches() {
   git fetch --all
-  git checkout main
-  git branch | grep -v "main" | xargs git branch -D
+  if [ "$(git rev-parse --abbrev-ref HEAD)" != "main" ]; then
+    git checkout main
+  fi
+  git branch --list | grep -vE '^\*?\s*main$' | xargs -r git branch -D
 }
 
 _aliases() {
