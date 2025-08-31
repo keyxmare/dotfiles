@@ -10,7 +10,7 @@ _aliases() {
   reset=$(printf '\033[0m')
   printf '%b%-20s %-40s %s%b\n' "$bold" "Alias" "Command" "Description" "$reset"
   printf '%-20s %-40s %s\n' "-----" "-------" "-----------"
-  { alias -p 2>/dev/null || alias; } | while IFS= read -r line; do
+  alias | while IFS= read -r line; do
     name=$(printf '%s' "$line" | cut -d= -f1 | sed "s/^alias //")
     value=$(printf '%s' "$line" | cut -d= -f2- | sed "s/^'//; s/'$//")
     case "$name" in
