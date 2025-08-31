@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Git related aliases
 
-alias_git_prune_branches_desc='fetch all remote branches, check out main, and delete all other local branches'
-alias_aliases_desc='list all defined aliases with descriptions'
+alias_git_prune_branches_desc='Fetch all remote branches, check out main, and delete all other local branches'
+alias_aliases_desc='List all defined aliases with descriptions'
 
 _aliases() {
   local bold reset
