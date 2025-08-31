@@ -21,20 +21,44 @@ _git_prune_branches() {
   url=$(git remote get-url "$remote" 2>/dev/null || echo "N/A")
   remote_branches=$(git for-each-ref --format='%(refname:strip=3)' "refs/remotes/$remote" | grep -vE '^(HEAD|main)$')
   remote_total=$(printf '%s\n' "$remote_branches" | sed '/^$/d' | wc -l)
-  i=0
-  while IFS= read -r branch; do
-    [ -z "$branch" ] && continue
-    i=$((i + 1))
-    if git push "$remote" --delete "$branch" >/dev/null 2>&1; then
-      status="OK"
-    else
-      status="KO"
-    fi
-    bar=$(load_bar $((i + 1)) "$remote_total"); bar=${bar%$'\n'}
-    print_over '%s %s %s %s %s' "$bar" "$remote" "$url" "$branch" "$status"
-  done
+  if [ "$remote_total" -eq 0 ]; then
+    printf 'No remote branches to prune on %s\n' "$remote"
+  else
+    i=0
+    printf '%s\n' "$remote_branches" | while IFS= read -r branch; do
+      [ -z "$branch" ] && continue
+      i=$((i + 1))
+      if git push "$remote" --delete "$branch" >/dev/null 2>&1; then
+        status="OK"
+      else
+        status="KO"
+      fi
+      bar=$(load_bar "$i" "$remote_total"); bar=${bar%$'\n'}
+      print_over '%s %s %s %s %s' "$bar" "$remote" "$url" "$branch" "$status"
+    done
+    printf '\n'
+  fi
 
-  printf '\n'
+  # Delete local branches and report progress
+  local_branches=$(git for-each-ref --format='%(refname:strip=2)' refs/heads | grep -vE '^(main)$')
+  local_total=$(printf '%s\n' "$local_branches" | sed '/^$/d' | wc -l)
+  if [ "$local_total" -eq 0 ]; then
+    printf 'No local branches to prune\n'
+  else
+    i=0
+    printf '%s\n' "$local_branches" | while IFS= read -r branch; do
+      [ -z "$branch" ] && continue
+      i=$((i + 1))
+      if git branch -D "$branch" >/dev/null 2>&1; then
+        status="OK"
+      else
+        status="KO"
+      fi
+      bar=$(load_bar "$i" "$local_total"); bar=${bar%$'\n'}
+      print_over '%s %s %s %s %s' "$bar" "local" "N/A" "$branch" "$status"
+    done
+    printf '\n'
+  fi
 }
 
 _aliases() {
