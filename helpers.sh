@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 # General shell helper functions
 
+# Print formatted text overwriting the current line.
+# Usage: print_over FORMAT [ARGS...]
+print_over() {
+  local fmt=$1
+  shift
+  printf "$fmt\033[K" "$@"
+}
+
 # Display a simple progress bar.
 # Usage: load_bar CURRENT TOTAL [WIDTH]
 # WIDTH defaults to 50 when not provided.

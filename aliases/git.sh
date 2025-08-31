@@ -28,9 +28,11 @@ _git_prune_branches() {
     else
       status="KO"
     fi
-    bar=$(load_bar "$i" "$local_total"); bar=${bar%$'\n'}
-    printf '%s %s %s\n' "$bar" "$branch" "$status"
-  done <<< "$local_branches"
+    bar=$(load_bar $((i + 1)) "$local_total"); bar=${bar%$'\n'}
+    print_over '%s %s %s' "$bar" "$branch" "$status"
+  done
+
+  printf '\n'
 
   # Delete remote branches on origin and report progress
   remote="origin"
@@ -46,9 +48,11 @@ _git_prune_branches() {
     else
       status="KO"
     fi
-    bar=$(load_bar "$i" "$remote_total"); bar=${bar%$'\n'}
-    printf '%s %s %s %s %s\n' "$bar" "$remote" "$url" "$branch" "$status"
-  done <<< "$remote_branches"
+    bar=$(load_bar $((i + 1)) "$remote_total"); bar=${bar%$'\n'}
+    print_over '%s %s %s %s %s' "$bar" "$remote" "$url" "$branch" "$status"
+  done
+
+  printf '\n'
 }
 
 _aliases() {
