@@ -4,6 +4,12 @@
 alias_git_prune_branches_desc='Fetch all remote branches, check out main, and delete all other local branches'
 alias_aliases_desc='List all defined aliases with descriptions'
 
+_git_prune_branches() {
+  git fetch --all
+  git checkout main
+  git branch | grep -v "main" | xargs git branch -D
+}
+
 _aliases() {
   local bold reset line name value desc
   bold=$(printf '\033[1m')
@@ -28,5 +34,5 @@ _aliases() {
   done
 }
 
-alias git-prune-branches='git fetch --all && git checkout main && git branch | grep -v "main" | xargs git branch -D'
+alias git-prune-branches='_git_prune_branches'
 alias aliases='_aliases'
