@@ -5,8 +5,8 @@ alias_git_prune_branches_desc='fetch all remote branches, check out main, and de
 alias_aliases_desc='list all defined aliases with descriptions'
 
 _aliases() {
-  alias -p | while IFS= read -r line; do
-    local name desc
+  alias | while IFS= read -r line; do
+    local name="" desc=""
     name=$(printf '%s' "$line" | sed -n "s/^alias \([^=]*\)=.*/\1/p")
     case "$name" in
       git-prune-branches)
