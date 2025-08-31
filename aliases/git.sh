@@ -11,14 +11,12 @@ _git_prune_branches() {
 }
 
 _aliases() {
-  local bold reset header_color alias_color desc_color bullet_color
+  local bold reset header_color alias_color
   local line name desc
   bold=$(printf '\033[1m')
   reset=$(printf '\033[0m')
   header_color=$(printf '\033[36m')
   alias_color=$(printf '\033[32m')
-  desc_color=$(printf '\033[33m')
-  bullet_color=$(printf '\033[35m')
 
   printf '%b%s%b\n' "$bold$header_color" "✨ Alias disponibles" "$reset"
   alias | while IFS= read -r line; do
@@ -35,13 +33,11 @@ _aliases() {
         ;;
     esac
     if [ -n "$desc" ]; then
-      printf '  %b•%b %b%s%b %b→ %s%b\n' \
-        "$bullet_color" "$reset" \
+      printf '  • %b%s%b\n      %s\n' \
         "$alias_color" "$name" "$reset" \
-        "$desc_color" "$desc" "$reset"
+        "$desc"
     else
-      printf '  %b•%b %b%s%b\n' \
-        "$bullet_color" "$reset" \
+      printf '  • %b%s%b\n' \
         "$alias_color" "$name" "$reset"
     fi
   done
