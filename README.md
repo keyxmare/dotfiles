@@ -6,7 +6,7 @@ This repository contains a bash/shell project structure to manage personal dotfi
 Run `./install.sh` to sync the repository into `~/.local/share/dotfiles` and source the aliases in your `~/.bashrc` or `~/.zshrc`. The aliases are also loaded for your current shell session.
 
 ## Aliases
-- `git-prune-branches`: fetch all remote branches, check out `main`, and delete all other local branches.
+- `git-prune-branches`: fetch all remote branches, check out `main`, and delete all other local and remote branches.
 - `aliases`: list all defined aliases with descriptions in a simplified colorized list.
 
 ## Syncing scripts

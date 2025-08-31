@@ -1,15 +1,18 @@
 #!/usr/bin/env bash
 # Git related aliases
 
-alias_git_prune_branches_desc='Fetch all remote branches, check out main, and delete all other local branches'
+alias_git_prune_branches_desc='Fetch all remote branches, check out main, and delete all other local and remote branches'
 alias_aliases_desc='List all defined aliases with descriptions'
 
 _git_prune_branches() {
-  git fetch --all
+  git fetch --all --prune
   if [ "$(git rev-parse --abbrev-ref HEAD)" != "main" ]; then
     git checkout main
   fi
   git branch --list | grep -vE '^\*?\s*main$' | xargs -r git branch -D
+  git for-each-ref --format='%(refname:strip=3)' refs/remotes/origin \
+    | grep -vE '^(HEAD|main)$' \
+    | xargs -r -I {} git push origin --delete {}
 }
 
 _aliases() {
