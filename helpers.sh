@@ -6,7 +6,8 @@
 print_over() {
   local fmt=$1
   shift
-  printf "$fmt\033[K" "$@"
+  # shellcheck disable=SC2059
+  printf "\r$fmt\033[K" "$@"
 }
 
 # Display a simple progress bar.
