@@ -16,24 +16,6 @@ _git_prune_branches() {
     source "$(dirname "${BASH_SOURCE[0]}")/../helpers.sh"
   fi
 
-  # Delete local branches except main with progress
-  local_branches=$(git for-each-ref --format='%(refname:short)' refs/heads | grep -v '^main$')
-  local_total=$(printf '%s\n' "$local_branches" | sed '/^$/d' | wc -l)
-  i=0
-  while IFS= read -r branch; do
-    [ -z "$branch" ] && continue
-    i=$((i + 1))
-    if git branch -D "$branch" >/dev/null 2>&1; then
-      status="OK"
-    else
-      status="KO"
-    fi
-    bar=$(load_bar $((i + 1)) "$local_total"); bar=${bar%$'\n'}
-    print_over '%s %s %s' "$bar" "$branch" "$status"
-  done
-
-  printf '\n'
-
   # Delete remote branches on origin and report progress
   remote="origin"
   url=$(git remote get-url "$remote" 2>/dev/null || echo "N/A")
