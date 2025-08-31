@@ -4,6 +4,9 @@ set -euo pipefail
 # Synchronize repository files and configure shell aliases
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Configure repository to use bundled hooks
+git -C "$REPO_DIR" config core.hooksPath hooks
+
 # Mirror repository files to the local share directory
 "$REPO_DIR/sync.sh"
 

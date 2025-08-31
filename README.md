@@ -14,3 +14,4 @@ Run `./install.sh` to sync the repository into `~/.local/share/dotfiles` and sou
 
 ## Syncing scripts
 - `./sync.sh`: mirror repository files into `~/.local/share/dotfiles` using `rsync` and reload the alias definitions.
+- A Git post-merge hook runs `sync.sh` after `git pull` to keep the local copy synchronized automatically.
