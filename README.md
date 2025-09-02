@@ -8,6 +8,7 @@ Run `./install.sh` (which also installs missing dependencies) or `./sync.sh --in
 ## Aliases
 - `git-prune-branches`: fetch all remote branches, check out `main`, and delete all other local and remote branches.
 - `aliases`: list all defined aliases with descriptions in a simplified colorized list.
+- `cat`: display files with syntax highlighting via `batcat`.
 
 ## Utilities
 - `load_bar`: render a basic progress bar for shell scripts.

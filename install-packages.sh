@@ -12,9 +12,9 @@ exec 2>/dev/null
 INFO_FD=3
 ERROR_FD=4
 
-REQUIRED_CMDS=(nvim)
+REQUIRED_CMDS=(nvim batcat)
 # Map commands to package names when they differ
-declare -A PKG_MAP=([nvim]=neovim)
+declare -A PKG_MAP=([nvim]=neovim [batcat]=bat)
 
 info "Checking required commands: ${REQUIRED_CMDS[*]}"
 missing=()
