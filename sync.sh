@@ -14,6 +14,11 @@ else
   set -euo pipefail
 fi
 
+# Silence all non-echo output
+exec 3>&1 4>&2
+exec 1>/dev/null
+exec 2>/dev/null
+
 # Determine the directory containing this script for Bash and Zsh
 if [ -n "${BASH_SOURCE[0]:-}" ]; then
   SCRIPT_PATH="${BASH_SOURCE[0]}"
@@ -27,7 +32,7 @@ DEST="${HOME}/.local/share/dotfiles"
 load_env() {
   ALIASES_FILE="$DEST/aliases/git.sh"
   HELPERS_FILE="$DEST/helpers.sh"
-  echo "Loading environment..."
+  echo "Loading environment..." >&3
   if [ -f "$ALIASES_FILE" ]; then
     # shellcheck disable=SC1090
     source "$ALIASES_FILE"
@@ -39,7 +44,7 @@ load_env() {
 }
 
 sync_repo() {
-  echo "Syncing repository to $DEST"
+  echo "Syncing repository to $DEST" >&3
   mkdir -p "$DEST"
   rsync -av --delete \
     --exclude '.git/' \
@@ -48,9 +53,9 @@ sync_repo() {
     --exclude '.idea/' \
     "$REPO_DIR"/ "$DEST"/
   load_env
-  echo "Configuring shell profiles..."
+  echo "Configuring shell profiles..." >&3
   configure_profiles
-  echo "Sync complete."
+  echo "Sync complete." >&3
 }
 
 configure_profiles() {
@@ -70,10 +75,10 @@ configure_profiles() {
 }
 
 install_repo() {
-  echo "Installing repository"
+  echo "Installing repository" >&3
   git -C "$REPO_DIR" config core.hooksPath hooks
   sync_repo
-  echo "Installation complete."
+  echo "Installation complete." >&3
 }
 
 case "${1:-}" in
