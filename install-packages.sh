@@ -19,8 +19,10 @@ declare -A PKG_MAP=([nvim]=neovim)
 info "Checking required commands: ${REQUIRED_CMDS[*]}"
 missing=()
 for cmd in "${REQUIRED_CMDS[@]}"; do
-  if ! command -v "$cmd" >/dev/null 2>&1; then
-    pkg="${PKG_MAP[$cmd]:-$cmd}"
+  pkg="${PKG_MAP[$cmd]:-$cmd}"
+  if command -v "$cmd" >/dev/null 2>&1; then
+    info "Package $pkg is already installed"
+  else
     missing+=("$pkg")
   fi
 done
