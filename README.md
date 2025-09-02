@@ -3,7 +3,7 @@
 This repository contains a bash/shell project structure to manage personal dotfiles.
 
 ## Installation
-Run `./install.sh` or `./sync.sh --install` to configure Git hooks, sync the repository into `~/.local/share/dotfiles`, and source the aliases in your `~/.bashrc` or `~/.zshrc`. The aliases and helper functions are also loaded for your current shell session, and subsequent `./sync.sh` runs keep your profiles up to date.
+Run `./install.sh` (which also installs missing dependencies) or `./sync.sh --install` to configure Git hooks, sync the repository into `~/.local/share/dotfiles`, and source the aliases in your `~/.bashrc` or `~/.zshrc`. The aliases and helper functions are also loaded for your current shell session, and subsequent `./sync.sh` runs keep your profiles up to date.
 
 ## Aliases
 - `git-prune-branches`: fetch all remote branches, check out `main`, and delete all other local and remote branches.
