@@ -27,6 +27,7 @@ DEST="${HOME}/.local/share/dotfiles"
 load_env() {
   ALIASES_FILE="$DEST/aliases/git.sh"
   HELPERS_FILE="$DEST/helpers.sh"
+  echo "Loading environment..."
   if [ -f "$ALIASES_FILE" ]; then
     # shellcheck disable=SC1090
     source "$ALIASES_FILE"
@@ -38,6 +39,7 @@ load_env() {
 }
 
 sync_repo() {
+  echo "Syncing repository to $DEST"
   mkdir -p "$DEST"
   rsync -av --delete \
     --exclude '.git/' \
@@ -46,7 +48,9 @@ sync_repo() {
     --exclude '.idea/' \
     "$REPO_DIR"/ "$DEST"/
   load_env
+  echo "Configuring shell profiles..."
   configure_profiles
+  echo "Sync complete."
 }
 
 configure_profiles() {
@@ -66,8 +70,10 @@ configure_profiles() {
 }
 
 install_repo() {
+  echo "Installing repository"
   git -C "$REPO_DIR" config core.hooksPath hooks
   sync_repo
+  echo "Installation complete."
 }
 
 case "${1:-}" in
