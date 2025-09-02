@@ -48,6 +48,9 @@ _aliases() {
       git-squash-first)
         desc=$alias_git_squash_first_desc
         ;;
+      cat)
+        desc=$alias_cat_desc
+        ;;
       *)
         desc=''
         ;;

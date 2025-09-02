@@ -35,14 +35,16 @@ source "$REPO_DIR/helpers.sh"
 DEST="${HOME}/.local/share/dotfiles"
 
 load_env() {
-  ALIASES_FILE="$DEST/aliases/git.sh"
+  ALIASES_DIR="$DEST/aliases"
   HELPERS_FILE="$DEST/helpers.sh"
   info "Loading environment..."
-  if [ -f "$ALIASES_FILE" ]; then
-    # shellcheck disable=SC1090
-    source "$ALIASES_FILE"
+  if [ -d "$ALIASES_DIR"  ]; then
+    for file in "$ALIASES_DIR"/*.sh; do
+      # shellcheck disable=SC1090
+      [ -f "$file" ] && source "$file"
+    done
   fi
-  if [ -f "$HELPERS_FILE" ]; then
+  if [ -f "$HELPERS_FILE"  ]; then
     # shellcheck disable=SC1090
     source "$HELPERS_FILE"
   fi
@@ -65,7 +67,7 @@ sync_repo() {
 
 configure_profiles() {
   PROFILES=("$HOME/.bashrc" "$HOME/.zshrc")
-  ALIASES_SNIPPET='[ -f "$HOME/.local/share/dotfiles/aliases/git.sh" ] && source "$HOME/.local/share/dotfiles/aliases/git.sh"'
+  ALIASES_SNIPPET='for f in "$HOME/.local/share/dotfiles/aliases/"*.sh; do [ -f "$f" ] && source "$f"; done'
   HELPERS_SNIPPET='[ -f "$HOME/.local/share/dotfiles/helpers.sh" ] && source "$HOME/.local/share/dotfiles/helpers.sh"'
 
   for PROFILE in "${PROFILES[@]}"; do
