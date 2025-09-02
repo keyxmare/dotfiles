@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # Shell aliases
 
+# shellcheck source=../helpers.sh
+source "$(dirname "${BASH_SOURCE[0]}")/../helpers.sh"
+
 alias_git_prune_branches_desc='Fetch all remote branches, check out main, and delete all other local and remote branches'
 alias_aliases_desc='List all defined aliases with descriptions'
 alias_git_squash_first_desc='Squash all commits onto the first commit and force push to origin'
@@ -28,14 +31,11 @@ _git_prune_branches() {
 }
 
 _aliases() {
-  local bold reset header_color alias_color
   local line name desc
-  bold=$(printf '\033[1m')
-  reset=$(printf '\033[0m')
-  header_color=$(printf '\033[36m')
-  alias_color=$(printf '\033[32m')
+  local header_color="$COLOR_INFO"
+  local alias_color="$COLOR_SUCCESS"
 
-  printf '%b%s%b\n' "$bold$header_color" "✨ Alias disponibles" "$reset"
+  printf '%b%s%b\n' "$header_color" "✨ Alias disponibles" "$COLOR_RESET"
   alias | while IFS= read -r line; do
     name=$(printf '%s' "$line" | cut -d= -f1 | sed "s/^alias //")
     case "$name" in
@@ -54,11 +54,11 @@ _aliases() {
     esac
     if [ -n "$desc" ]; then
       printf '  • %b%s%b\n      %s\n' \
-        "$alias_color" "$name" "$reset" \
+        "$alias_color" "$name" "$COLOR_RESET" \
         "$desc"
     else
       printf '  • %b%s%b\n' \
-        "$alias_color" "$name" "$reset"
+        "$alias_color" "$name" "$COLOR_RESET"
     fi
   done
 }
