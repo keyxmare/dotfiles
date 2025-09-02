@@ -39,7 +39,12 @@ load_env() {
 
 sync_repo() {
   mkdir -p "$DEST"
-  rsync -av --delete --exclude '.git/' "$REPO_DIR"/ "$DEST"/
+  rsync -av --delete \
+    --exclude '.git/' \
+    --exclude '.github/' \
+    --exclude 'hooks/' \
+    --exclude '.idea/' \
+    "$REPO_DIR"/ "$DEST"/
   load_env
   configure_profiles
 }
