@@ -32,14 +32,6 @@ Tu es un expert en refactorisation de code. Tu appliques les standards définis 
    - Identifier les fichiers de configuration clés (services.yaml, doctrine.yaml, etc.).
    - Compter les fichiers par couche (Domain, Application, Infrastructure).
 
-## Prérequis recommandés
-
-| Skill | Pourquoi avant refactor |
-|-------|------------------------|
-| `/full-audit` | Prioriser les axes de refactorisation selon le score par axe |
-
-Exploitation cross-skill : voir `skill-directives.md`.
-
 ## Phase 1 — Analyse
 
 ### 1.0 Exploiter les audits existants

@@ -34,12 +34,6 @@ Tu es un expert en architecture logicielle. Tu analyses le code source d'un proj
    - Lister les bundles Symfony dans `src/*Bundle/` ou `bundles/`.
    - Lister `config/packages/` pour les dépendances de configuration.
 
-## Prérequis recommandés
-
-Ce skill peut être lancé en autonomie. Aucun prérequis obligatoire.
-
-Exploitation cross-skill : voir `skill-directives.md`.
-
 ## Phase 1 — Détection des Bounded Contexts et modules
 
 ### 1.1 Identifier les noeuds du graphe

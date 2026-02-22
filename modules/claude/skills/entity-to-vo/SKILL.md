@@ -1,7 +1,7 @@
 ---
 name: entity-to-vo
 description: Identifie dans les entités Doctrine les groupes de champs qui devraient être des Value Objects (adresse, money, date range, coordonnées...) et génère le code d'extraction. Utiliser quand l'utilisateur veut extraire des Value Objects, détecter des champs groupables, ou enrichir son modèle DDD avec des VO.
-argument-hint: [entity-path|bounded-context] [--bc=<name>] [--dry-run] [--scope=entity|directory|project] [--mapping=xml|attribute] [--resume] [--full]
+argument-hint: [entity-path|bounded-context] [--bc=<name>] [--dry-run] [--scope=entity|directory|project] [--mapping=xml|attribute] [--output=report|json] [--summary] [--resume] [--full]
 ---
 
 # Entity to Value Object Extractor — Doctrine Entity → DDD Value Objects
@@ -19,6 +19,10 @@ Tu es un expert en modélisation DDD et Doctrine. Tu analyses les entités Doctr
 - `--mapping=<mapping>` : format du mapping Doctrine à générer :
   - `xml` (défaut) : mapping XML (`*.orm.xml`) — recommandé pour garder le domaine pur
   - `attribute` : attributs PHP Doctrine (`#[ORM\Embedded]`, `#[ORM\Embeddable]`)
+- `--output=<format>` :
+  - `report` (défaut) : rapport Markdown structuré
+  - `json` : sortie JSON pour traitement automatisé
+- `--summary` : si présent, produire uniquement un résumé compact (entités analysées, top 5 groupes candidats, score par entité) au lieu du rapport complet.
 
 ## Phase 0 — Chargement du contexte
 
@@ -36,15 +40,6 @@ Tu es un expert en modélisation DDD et Doctrine. Tu analyses les entités Doctr
    - Lister les entités Doctrine et leurs mappings.
    - Identifier les Bounded Contexts.
    - Repérer les entités vs Aggregate Roots.
-
-## Prérequis recommandés
-
-| Skill | Pourquoi avant entity-to-vo |
-|-------|----------------------------|
-| `/full-audit` | Prioriser les entités à refactorer selon le score DDD |
-| `/dependency-diagram` | Vérifier les couplages entre entités de BC différents avant extraction |
-
-Exploitation cross-skill : voir `skill-directives.md`.
 
 ## Phase 1 — Scan des entités et détection des groupes
 

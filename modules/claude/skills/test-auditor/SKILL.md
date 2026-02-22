@@ -37,14 +37,6 @@ Tu es un expert en stratégie de tests pour les projets Symfony/DDD. Tu analyses
    - Identifier les rapports de couverture existants (`coverage/`, `build/coverage/`).
 4. **Consulter les références** : lire `references/audit-patterns.md` pour les commandes de scan et les barèmes.
 
-## Prérequis recommandés
-
-| Skill | Pourquoi avant test-auditor |
-|-------|----------------------------|
-| `/full-audit` | Connaître le score de couverture existant et les axes faibles |
-
-Exploitation cross-skill : voir `skill-directives.md`.
-
 ## Phase 1 — Inventaire des tests
 
 ### 1.1 Cartographie des fichiers de test

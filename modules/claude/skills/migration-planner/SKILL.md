@@ -33,15 +33,6 @@ Tu es un expert en migration de projets Symfony. Tu analyses l'état actuel d'un
    - Identifier le format de mapping Doctrine (annotations, XML, attributs).
 4. **Consulter les références** : lire `references/migration-patterns.md` pour les breaking changes connus par version.
 
-## Prérequis recommandés
-
-| Skill | Pourquoi avant migration-planner |
-|-------|----------------------------------|
-| `/config-archeologist` | Avoir l'inventaire des dépréciations de configuration avant de planifier la migration |
-| `/full-audit` | Connaître l'état des dépendances et le score de dépréciations |
-
-Exploitation cross-skill : voir `skill-directives.md`.
-
 ## Phase 1 — Inventaire de l'état actuel
 
 ### 1.1 Version Symfony et PHP

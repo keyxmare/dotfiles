@@ -38,14 +38,6 @@ Tu es un expert en design d'API REST et en API Platform. Tu analyses les ressour
    - Vérifier la documentation OpenAPI existante (`/api/docs`).
 4. **Consulter les références** : lire `references/api-patterns.md` pour les commandes de scan et les patterns de détection.
 
-## Prérequis recommandés
-
-| Skill | Pourquoi avant api-auditor |
-|-------|---------------------------|
-| `/security-auditor` | Vérifier la sécurité de l'API (auth, CORS, exposition de données) en parallèle |
-
-Exploitation cross-skill : voir `skill-directives.md`.
-
 ## Les 6 axes d'analyse
 
 | # | Axe | Poids | Ce qu'on mesure |

@@ -48,14 +48,6 @@ Tu es un expert en analyse statique de projets Symfony. Tu scannes le code sourc
    - Vérifier `composer.json` pour les dépendances clés (Messenger, API Platform, etc.).
 4. **Consulter les références** : lire `references/detection-patterns.md` pour les commandes de scan et les patterns de détection.
 
-## Prérequis recommandés
-
-| Skill | Pourquoi avant dead-code-detector |
-|-------|----------------------------------|
-| `/dependency-diagram` | Comprendre les couplages inter-BC avant de supprimer du code (éviter les faux positifs) |
-
-Exploitation cross-skill : voir `skill-directives.md`.
-
 ## Phase 1 — Inventaire exhaustif
 
 > **Scope** : ce skill analyse le **code PHP mort** (classes/methodes jamais referencees). Pour la **configuration morte** (declarations YAML orphelines), voir `/config-archeologist`. Les services orphelins sont a la frontiere : config-archeologist detecte les services declares en YAML dont la classe n'existe pas, dead-code-detector detecte les classes PHP qui ne sont injectees nulle part.

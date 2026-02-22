@@ -42,15 +42,6 @@ Tu es un expert en refactorisation de controllers et services applicatifs legacy
    - Identifier les entités/agrégats manipulés.
    - Identifier les repositories utilisés.
 
-## Prérequis recommandés
-
-| Skill | Pourquoi avant extract-to-cqrs |
-|-------|-------------------------------|
-| `/service-decoupler` | Identifier les god services et planifier leur découpage avant la migration CQRS |
-| `/full-audit` | Connaître le score de complexité et prioriser les controllers à migrer |
-
-Exploitation cross-skill : voir `skill-directives.md`.
-
 ## Phase 1 — Dissection du controller
 
 Lire le controller cible en entier. Pour **chaque action** (méthode publique avec `#[Route]`), réaliser une dissection précise.

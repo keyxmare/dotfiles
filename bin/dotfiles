@@ -3,43 +3,75 @@ set -euo pipefail
 
 DOTFILES_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 MODULES_DIR="$DOTFILES_DIR/modules"
+VERSION="1.0.0"
 
-# ─── Colors ──────────────────────────────────────────────────────────────────
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-BLUE='\033[0;34m'
-BOLD='\033[1m'
-RESET='\033[0m'
+# ─── Colors & Styles ─────────────────────────────────────────────────────────
+RED=$'\033[0;31m'
+GREEN=$'\033[0;32m'
+YELLOW=$'\033[0;33m'
+BLUE=$'\033[0;34m'
+CYAN=$'\033[0;36m'
+DIM=$'\033[2m'
+BOLD=$'\033[1m'
+RESET=$'\033[0m'
 
-# ─── Helpers ─────────────────────────────────────────────────────────────────
-info()  { printf "${BLUE}▸${RESET} %s\n" "$*"; }
-ok()    { printf "${GREEN}✓${RESET} %s\n" "$*"; }
-warn()  { printf "${YELLOW}⚠${RESET} %s\n" "$*"; }
-err()   { printf "${RED}✗${RESET} %s\n" "$*" >&2; }
-die()   { err "$@"; exit 1; }
+# ─── UI Components ───────────────────────────────────────────────────────────
+# Unicode icons via printf (bash 3.2 compatible)
+CHAR_CHECK=$(printf '\xe2\x9c\x93')
+CHAR_WARN=$(printf '\xe2\x9a\xa0')
+CHAR_CROSS=$(printf '\xe2\x9c\x97')
+CHAR_ARROW=$(printf '\xe2\x96\xb8')
+CHAR_PLUS=$(printf '\xe2\x9c\xa6')
 
-usage() {
-    cat <<EOF
-${BOLD}Usage:${RESET} dotfiles <command> [options] <module|--all>
+ICON_OK="${GREEN}${CHAR_CHECK}${RESET}"
+ICON_WARN="${YELLOW}${CHAR_WARN}${RESET}"
+ICON_ERR="${RED}${CHAR_CROSS}${RESET}"
+ICON_INFO="${BLUE}${CHAR_ARROW}${RESET}"
+ICON_NEW="${CYAN}${CHAR_PLUS}${RESET}"
+ICON_EQ="${GREEN}=${RESET}"
+ICON_DIFF="${YELLOW}~${RESET}"
 
-${BOLD}Commands:${RESET}
-  push <module>       Copy source → dotfiles
-  pull <module>       Copy dotfiles → source
-  status <module>     Show diffs between source and dotfiles
-  list                List available modules
-
-${BOLD}Options:${RESET}
-  --all, -a           Apply command to all modules
-  --force, -f         Overwrite without confirmation
-  --help, -h          Show this help
-EOF
+header() {
+    echo
+    printf "  ${BOLD}dotfiles${RESET} ${DIM}v%s${RESET}\n" "$VERSION"
+    printf "  ${DIM}%s${RESET}\n" "────────────────────────────"
+    echo
 }
 
+section() {
+    printf "  ${BOLD}%s${RESET}\n" "$*"
+}
+
+info()  { printf "  ${ICON_INFO}  %s\n" "$*"; }
+ok()    { printf "  ${ICON_OK}  %s\n" "$*"; }
+warn()  { printf "  ${ICON_WARN}  %s\n" "$*"; }
+err()   { printf "  ${ICON_ERR}  %s\n" "$*" >&2; }
+die()   { echo; err "$@"; echo; exit 1; }
+
+# ─── Usage ────────────────────────────────────────────────────────────────────
+usage() {
+    header
+    printf "  ${BOLD}USAGE${RESET}\n"
+    printf "    dotfiles ${CYAN}<command>${RESET} ${DIM}[options]${RESET} ${CYAN}<module|--all>${RESET}\n"
+    echo
+    printf "  ${BOLD}COMMANDS${RESET}\n"
+    printf "    ${CYAN}push${RESET}   ${DIM}<module>${RESET}   Copy source ${DIM}→${RESET} dotfiles\n"
+    printf "    ${CYAN}pull${RESET}   ${DIM}<module>${RESET}   Copy dotfiles ${DIM}→${RESET} source\n"
+    printf "    ${CYAN}status${RESET} ${DIM}<module>${RESET}   Show diffs between source and dotfiles\n"
+    printf "    ${CYAN}list${RESET}              List available modules\n"
+    echo
+    printf "  ${BOLD}OPTIONS${RESET}\n"
+    printf "    ${CYAN}--all${RESET}, ${CYAN}-a${RESET}        Apply command to all modules\n"
+    printf "    ${CYAN}--force${RESET}, ${CYAN}-f${RESET}      Overwrite without confirmation\n"
+    printf "    ${CYAN}--help${RESET}, ${CYAN}-h${RESET}       Show this help\n"
+    echo
+}
+
+# ─── Module loading ──────────────────────────────────────────────────────────
 load_module() {
     local module="$1"
     local conf="$MODULES_DIR/$module/module.conf"
-    [[ -f "$conf" ]] || die "Module '$module' not found (missing $conf)"
+    [[ -f "$conf" ]] || die "Module '${BOLD}$module${RESET}' not found ${DIM}(missing $conf)${RESET}"
     # shellcheck source=/dev/null
     source "$conf"
     [[ -n "${SOURCE_DIR:-}" ]] || die "SOURCE_DIR not defined in $conf"
@@ -47,30 +79,40 @@ load_module() {
 }
 
 list_modules() {
+    header
+    section "Available modules"
+    echo
     local found=0
     for conf in "$MODULES_DIR"/*/module.conf; do
         [[ -f "$conf" ]] || continue
         found=1
-        basename "$(dirname "$conf")"
+        local name
+        name="$(basename "$(dirname "$conf")")"
+        # shellcheck source=/dev/null
+        source "$conf"
+        local item_count=${#SYNC_ITEMS[@]}
+        printf "    ${CYAN}%-14s${RESET} ${DIM}%s${RESET}  ${DIM}(%d items)${RESET}\n" "$name" "$SOURCE_DIR" "$item_count"
     done
-    [[ $found -eq 1 ]] || warn "No modules found in $MODULES_DIR/"
+    echo
+    if [[ $found -eq 0 ]]; then
+        warn "No modules found in ${DIM}$MODULES_DIR/${RESET}"
+    fi
 }
 
-# ─── Confirm prompt ─────────────────────────────────────────────────────────
-# Returns 0 = yes, 1 = no. Sets CONFIRM_ALL=1 if user picks 'a'.
+# ─── Confirm prompt ──────────────────────────────────────────────────────────
 CONFIRM_ALL=0
 
 confirm() {
     local msg="$1"
     [[ $FORCE -eq 1 || $CONFIRM_ALL -eq 1 ]] && return 0
     while true; do
-        printf "${YELLOW}?${RESET} %s ${BOLD}[y/n/a]${RESET} " "$msg"
+        printf "  ${YELLOW}?${RESET}  %s ${BOLD}[y/n/a]${RESET} " "$msg"
         read -r choice
         case "$choice" in
             y|Y) return 0 ;;
             n|N) return 1 ;;
             a|A) CONFIRM_ALL=1; return 0 ;;
-            *)   echo "  Enter y (yes), n (no), or a (yes to all)" ;;
+            *)   printf "      ${DIM}Enter y (yes), n (no), or a (yes to all)${RESET}\n" ;;
         esac
     done
 }
@@ -80,18 +122,18 @@ sync_item() {
     local src="$1" dst="$2" label="$3"
 
     if [[ ! -e "$src" ]]; then
-        warn "Source not found: $src (skipped)"
+        warn "Source not found: ${DIM}$src${RESET} ${DIM}(skipped)${RESET}"
         return
     fi
 
     # Directory sync
     if [[ -d "$src" ]]; then
         if [[ ! -d "$dst" ]]; then
-            info "New directory: $label"
+            printf "  ${ICON_NEW}  ${BOLD}%s${RESET} ${DIM}(new directory)${RESET}\n" "$label"
             if confirm "Copy $label?"; then
                 mkdir -p "$dst"
                 rsync -a --delete "$src/" "$dst/"
-                ok "Copied $label"
+                ok "Copied ${BOLD}$label${RESET}"
             fi
             return
         fi
@@ -99,40 +141,40 @@ sync_item() {
         local diff_output
         diff_output=$(diff -rq "$src" "$dst" 2>/dev/null) || true
         if [[ -z "$diff_output" ]]; then
-            ok "$label is up to date"
+            printf "  ${ICON_EQ}  %s\n" "$label"
             return
         fi
 
-        info "Changes in $label:"
-        echo "$diff_output"
+        printf "  ${ICON_DIFF}  ${BOLD}%s${RESET} ${DIM}(modified)${RESET}\n" "$label"
+        echo "$diff_output" | sed 's/^/      /'
         if confirm "Sync $label?"; then
             rsync -a --delete "$src/" "$dst/"
-            ok "Synced $label"
+            ok "Synced ${BOLD}$label${RESET}"
         fi
         return
     fi
 
     # File sync
     if [[ ! -f "$dst" ]]; then
-        info "New file: $label"
+        printf "  ${ICON_NEW}  ${BOLD}%s${RESET} ${DIM}(new file)${RESET}\n" "$label"
         if confirm "Copy $label?"; then
             mkdir -p "$(dirname "$dst")"
             cp "$src" "$dst"
-            ok "Copied $label"
+            ok "Copied ${BOLD}$label${RESET}"
         fi
         return
     fi
 
     if diff -q "$src" "$dst" > /dev/null 2>&1; then
-        ok "$label is up to date"
+        printf "  ${ICON_EQ}  %s\n" "$label"
         return
     fi
 
-    info "Changes in $label:"
-    diff --color=auto -u "$dst" "$src" || true
+    printf "  ${ICON_DIFF}  ${BOLD}%s${RESET} ${DIM}(modified)${RESET}\n" "$label"
+    diff --color=auto -u "$dst" "$src" | sed 's/^/      /' || true
     if confirm "Overwrite $label?"; then
         cp "$src" "$dst"
-        ok "Updated $label"
+        ok "Updated ${BOLD}$label${RESET}"
     fi
 }
 
@@ -140,12 +182,12 @@ status_item() {
     local src="$1" dst="$2" label="$3"
 
     if [[ ! -e "$src" ]]; then
-        warn "Source not found: $src"
+        warn "Source not found: ${DIM}$src${RESET}"
         return
     fi
 
     if [[ ! -e "$dst" ]]; then
-        printf "${YELLOW}+${RESET} %s (new)\n" "$label"
+        printf "  ${ICON_NEW}  ${BOLD}%s${RESET} ${DIM}(new)${RESET}\n" "$label"
         return
     fi
 
@@ -153,26 +195,30 @@ status_item() {
         local diff_output
         diff_output=$(diff -rq "$src" "$dst" 2>/dev/null) || true
         if [[ -z "$diff_output" ]]; then
-            printf "${GREEN}=${RESET} %s\n" "$label"
+            printf "  ${ICON_EQ}  %s\n" "$label"
         else
-            printf "${YELLOW}~${RESET} %s\n" "$label"
-            echo "$diff_output" | sed 's/^/  /'
+            printf "  ${ICON_DIFF}  ${BOLD}%s${RESET} ${DIM}(modified)${RESET}\n" "$label"
+            echo "$diff_output" | sed 's/^/      /'
         fi
         return
     fi
 
     if diff -q "$src" "$dst" > /dev/null 2>&1; then
-        printf "${GREEN}=${RESET} %s\n" "$label"
+        printf "  ${ICON_EQ}  %s\n" "$label"
     else
-        printf "${YELLOW}~${RESET} %s (modified)\n" "$label"
-        diff --color=auto -u "$dst" "$src" || true
+        printf "  ${ICON_DIFF}  ${BOLD}%s${RESET} ${DIM}(modified)${RESET}\n" "$label"
+        diff --color=auto -u "$dst" "$src" | sed 's/^/      /' || true
     fi
 }
 
+# ─── Commands ─────────────────────────────────────────────────────────────────
 do_push() {
     local module="$1"
     load_module "$module"
-    info "Pushing $module (${SOURCE_DIR} → modules/$module/)"
+    echo
+    section "$module"
+    printf "    ${DIM}%s → modules/%s/${RESET}\n" "$SOURCE_DIR" "$module"
+    echo
     for item in "${SYNC_ITEMS[@]}"; do
         sync_item "$SOURCE_DIR/$item" "$MODULES_DIR/$module/$item" "$item"
     done
@@ -181,7 +227,10 @@ do_push() {
 do_pull() {
     local module="$1"
     load_module "$module"
-    info "Pulling $module (modules/$module/ → ${SOURCE_DIR})"
+    echo
+    section "$module"
+    printf "    ${DIM}modules/%s/ → %s${RESET}\n" "$module" "$SOURCE_DIR"
+    echo
     for item in "${SYNC_ITEMS[@]}"; do
         sync_item "$MODULES_DIR/$module/$item" "$SOURCE_DIR/$item" "$item"
     done
@@ -190,13 +239,16 @@ do_pull() {
 do_status() {
     local module="$1"
     load_module "$module"
-    printf "${BOLD}Module: %s${RESET} (%s)\n" "$module" "$SOURCE_DIR"
+    echo
+    section "$module"
+    printf "    ${DIM}%s${RESET}\n" "$SOURCE_DIR"
+    echo
     for item in "${SYNC_ITEMS[@]}"; do
         status_item "$SOURCE_DIR/$item" "$MODULES_DIR/$module/$item" "$item"
     done
 }
 
-# ─── Main ────────────────────────────────────────────────────────────────────
+# ─── Main ─────────────────────────────────────────────────────────────────────
 FORCE=0
 COMMAND=""
 TARGET=""
@@ -220,7 +272,7 @@ if [[ "$COMMAND" == "list" ]]; then
     exit 0
 fi
 
-[[ -n "$TARGET" ]] || die "Missing target: specify a module name or --all"
+[[ -n "$TARGET" ]] || die "Missing target: specify a module name or ${BOLD}--all${RESET}"
 
 if [[ "$TARGET" == "--all" ]]; then
     modules=()
@@ -229,10 +281,21 @@ if [[ "$TARGET" == "--all" ]]; then
         modules+=("$(basename "$(dirname "$conf")")")
     done
     [[ ${#modules[@]} -gt 0 ]] || die "No modules found"
+
+    CMD_UPPER="$(printf '%s' "$COMMAND" | tr '[:lower:]' '[:upper:]')"
+
+    header
+    section "$CMD_UPPER all modules ${DIM}(${#modules[@]})${RESET}"
+
     for mod in "${modules[@]}"; do
         "do_$COMMAND" "$mod"
-        echo
     done
+    echo
 else
+    CMD_UPPER="$(printf '%s' "$COMMAND" | tr '[:lower:]' '[:upper:]')"
+
+    header
+    section "$CMD_UPPER"
     "do_$COMMAND" "$TARGET"
+    echo
 fi

@@ -36,14 +36,6 @@ Tu es un expert en configuration Symfony. Tu fouilles les fichiers de configurat
    - Lire `config/bundles.php` pour les bundles enregistrés.
 4. **Consulter les références** : lire `references/config-patterns.md` pour les commandes de scan et les patterns de détection.
 
-## Prérequis recommandés
-
-| Skill | Pourquoi avant config-archeologist |
-|-------|-----------------------------------|
-| `/full-audit` | Avoir le score global pour contextualiser les anomalies de configuration |
-
-Exploitation cross-skill : voir `skill-directives.md`.
-
 ## Phase 1 — Inventaire exhaustif des configurations
 
 > Voir `references/config-patterns.md` pour les commandes de scan detaillees et les patterns de detection par categorie.

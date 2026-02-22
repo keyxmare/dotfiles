@@ -36,14 +36,6 @@ Tu es un expert en conception orientée objet et en architecture DDD/Symfony. Tu
    - Lister `config/services.yaml` pour les services déclarés explicitement.
    - Vérifier `composer.json` pour les dépendances clés.
 
-## Prérequis recommandés
-
-| Skill | Pourquoi avant service-decoupler |
-|-------|----------------------------------|
-| `/dependency-diagram` | Cartographier les dépendances inter-BC pour contextualiser les plans de découpage |
-
-Exploitation cross-skill : voir `skill-directives.md`.
-
 ## Phase 1 — Inventaire des services
 
 Avant de détecter les violations, construire un **inventaire exhaustif** de tous les services du projet. Scanner toutes les classes PHP dans le scope demandé.
