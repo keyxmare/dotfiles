@@ -1,0 +1,71 @@
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(git status)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git add*)",
+      "Bash(git commit*)",
+      "Bash(git branch*)",
+      "Bash(git checkout*)",
+      "Bash(git switch*)",
+      "Bash(git stash*)",
+      "Bash(git merge*)",
+      "Bash(git rebase*)",
+      "Bash(git pull*)",
+      "Bash(git fetch*)",
+      "Bash(git push*)",
+      "Bash(gh *)",
+      "Bash(composer *)",
+      "Bash(php *)",
+      "Bash(phpstan *)",
+      "Bash(phpunit *)",
+      "Bash(./vendor/bin/*)",
+      "Bash(npm *)",
+      "Bash(npx *)",
+      "Bash(node *)",
+      "Bash(ls *)",
+      "Bash(mkdir *)",
+      "Bash(cp *)",
+      "Bash(mv *)",
+      "Bash(chmod *)",
+      "Bash(which *)",
+      "Bash(cat *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(wc *)",
+      "Bash(sort *)",
+      "Bash(curl *)",
+      "Bash(open *)",
+      "Bash(make *)",
+      "Bash(docker compose *)",
+      "Bash(docker exec *)",
+      "Read",
+      "Edit",
+      "Write",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch",
+      "Task",
+      "NotebookEdit"
+    ],
+    "deny": []
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash(git commit*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f Makefile ]; then make cs-fix 2>&1 && make phpstan 2>&1 && make test 2>&1; else echo '⚠️ Pas de Makefile, vérifier manuellement: cs-fix + PHPStan + tests'; fi"
+          }
+        ]
+      }
+    ]
+  }
+}

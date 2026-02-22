@@ -1,0 +1,238 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DOTFILES_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+MODULES_DIR="$DOTFILES_DIR/modules"
+
+# ─── Colors ──────────────────────────────────────────────────────────────────
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+BOLD='\033[1m'
+RESET='\033[0m'
+
+# ─── Helpers ─────────────────────────────────────────────────────────────────
+info()  { printf "${BLUE}▸${RESET} %s\n" "$*"; }
+ok()    { printf "${GREEN}✓${RESET} %s\n" "$*"; }
+warn()  { printf "${YELLOW}⚠${RESET} %s\n" "$*"; }
+err()   { printf "${RED}✗${RESET} %s\n" "$*" >&2; }
+die()   { err "$@"; exit 1; }
+
+usage() {
+    cat <<EOF
+${BOLD}Usage:${RESET} dotfiles <command> [options] <module|--all>
+
+${BOLD}Commands:${RESET}
+  push <module>       Copy source → dotfiles
+  pull <module>       Copy dotfiles → source
+  status <module>     Show diffs between source and dotfiles
+  list                List available modules
+
+${BOLD}Options:${RESET}
+  --all, -a           Apply command to all modules
+  --force, -f         Overwrite without confirmation
+  --help, -h          Show this help
+EOF
+}
+
+load_module() {
+    local module="$1"
+    local conf="$MODULES_DIR/$module/module.conf"
+    [[ -f "$conf" ]] || die "Module '$module' not found (missing $conf)"
+    # shellcheck source=/dev/null
+    source "$conf"
+    [[ -n "${SOURCE_DIR:-}" ]] || die "SOURCE_DIR not defined in $conf"
+    [[ -n "${SYNC_ITEMS[*]:-}" ]] || die "SYNC_ITEMS not defined in $conf"
+}
+
+list_modules() {
+    local found=0
+    for conf in "$MODULES_DIR"/*/module.conf; do
+        [[ -f "$conf" ]] || continue
+        found=1
+        basename "$(dirname "$conf")"
+    done
+    [[ $found -eq 1 ]] || warn "No modules found in $MODULES_DIR/"
+}
+
+# ─── Confirm prompt ─────────────────────────────────────────────────────────
+# Returns 0 = yes, 1 = no. Sets CONFIRM_ALL=1 if user picks 'a'.
+CONFIRM_ALL=0
+
+confirm() {
+    local msg="$1"
+    [[ $FORCE -eq 1 || $CONFIRM_ALL -eq 1 ]] && return 0
+    while true; do
+        printf "${YELLOW}?${RESET} %s ${BOLD}[y/n/a]${RESET} " "$msg"
+        read -r choice
+        case "$choice" in
+            y|Y) return 0 ;;
+            n|N) return 1 ;;
+            a|A) CONFIRM_ALL=1; return 0 ;;
+            *)   echo "  Enter y (yes), n (no), or a (yes to all)" ;;
+        esac
+    done
+}
+
+# ─── Sync logic ──────────────────────────────────────────────────────────────
+sync_item() {
+    local src="$1" dst="$2" label="$3"
+
+    if [[ ! -e "$src" ]]; then
+        warn "Source not found: $src (skipped)"
+        return
+    fi
+
+    # Directory sync
+    if [[ -d "$src" ]]; then
+        if [[ ! -d "$dst" ]]; then
+            info "New directory: $label"
+            if confirm "Copy $label?"; then
+                mkdir -p "$dst"
+                rsync -a --delete "$src/" "$dst/"
+                ok "Copied $label"
+            fi
+            return
+        fi
+
+        local diff_output
+        diff_output=$(diff -rq "$src" "$dst" 2>/dev/null) || true
+        if [[ -z "$diff_output" ]]; then
+            ok "$label is up to date"
+            return
+        fi
+
+        info "Changes in $label:"
+        echo "$diff_output"
+        if confirm "Sync $label?"; then
+            rsync -a --delete "$src/" "$dst/"
+            ok "Synced $label"
+        fi
+        return
+    fi
+
+    # File sync
+    if [[ ! -f "$dst" ]]; then
+        info "New file: $label"
+        if confirm "Copy $label?"; then
+            mkdir -p "$(dirname "$dst")"
+            cp "$src" "$dst"
+            ok "Copied $label"
+        fi
+        return
+    fi
+
+    if diff -q "$src" "$dst" > /dev/null 2>&1; then
+        ok "$label is up to date"
+        return
+    fi
+
+    info "Changes in $label:"
+    diff --color=auto -u "$dst" "$src" || true
+    if confirm "Overwrite $label?"; then
+        cp "$src" "$dst"
+        ok "Updated $label"
+    fi
+}
+
+status_item() {
+    local src="$1" dst="$2" label="$3"
+
+    if [[ ! -e "$src" ]]; then
+        warn "Source not found: $src"
+        return
+    fi
+
+    if [[ ! -e "$dst" ]]; then
+        printf "${YELLOW}+${RESET} %s (new)\n" "$label"
+        return
+    fi
+
+    if [[ -d "$src" ]]; then
+        local diff_output
+        diff_output=$(diff -rq "$src" "$dst" 2>/dev/null) || true
+        if [[ -z "$diff_output" ]]; then
+            printf "${GREEN}=${RESET} %s\n" "$label"
+        else
+            printf "${YELLOW}~${RESET} %s\n" "$label"
+            echo "$diff_output" | sed 's/^/  /'
+        fi
+        return
+    fi
+
+    if diff -q "$src" "$dst" > /dev/null 2>&1; then
+        printf "${GREEN}=${RESET} %s\n" "$label"
+    else
+        printf "${YELLOW}~${RESET} %s (modified)\n" "$label"
+        diff --color=auto -u "$dst" "$src" || true
+    fi
+}
+
+do_push() {
+    local module="$1"
+    load_module "$module"
+    info "Pushing $module (${SOURCE_DIR} → modules/$module/)"
+    for item in "${SYNC_ITEMS[@]}"; do
+        sync_item "$SOURCE_DIR/$item" "$MODULES_DIR/$module/$item" "$item"
+    done
+}
+
+do_pull() {
+    local module="$1"
+    load_module "$module"
+    info "Pulling $module (modules/$module/ → ${SOURCE_DIR})"
+    for item in "${SYNC_ITEMS[@]}"; do
+        sync_item "$MODULES_DIR/$module/$item" "$SOURCE_DIR/$item" "$item"
+    done
+}
+
+do_status() {
+    local module="$1"
+    load_module "$module"
+    printf "${BOLD}Module: %s${RESET} (%s)\n" "$module" "$SOURCE_DIR"
+    for item in "${SYNC_ITEMS[@]}"; do
+        status_item "$SOURCE_DIR/$item" "$MODULES_DIR/$module/$item" "$item"
+    done
+}
+
+# ─── Main ────────────────────────────────────────────────────────────────────
+FORCE=0
+COMMAND=""
+TARGET=""
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        push|pull|status|list) COMMAND="$1" ;;
+        --all|-a)   TARGET="--all" ;;
+        --force|-f) FORCE=1 ;;
+        --help|-h)  usage; exit 0 ;;
+        -*)         die "Unknown option: $1" ;;
+        *)          TARGET="$1" ;;
+    esac
+    shift
+done
+
+[[ -n "$COMMAND" ]] || { usage; exit 1; }
+
+if [[ "$COMMAND" == "list" ]]; then
+    list_modules
+    exit 0
+fi
+
+[[ -n "$TARGET" ]] || die "Missing target: specify a module name or --all"
+
+if [[ "$TARGET" == "--all" ]]; then
+    modules=()
+    for conf in "$MODULES_DIR"/*/module.conf; do
+        [[ -f "$conf" ]] || continue
+        modules+=("$(basename "$(dirname "$conf")")")
+    done
+    [[ ${#modules[@]} -gt 0 ]] || die "No modules found"
+    for mod in "${modules[@]}"; do
+        "do_$COMMAND" "$mod"
+        echo
+    done
+else
+    "do_$COMMAND" "$TARGET"
+fi
