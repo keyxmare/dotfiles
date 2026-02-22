@@ -7,19 +7,24 @@
 - Utiliser le Makefile comme point d'entrée (pas de `docker compose exec` en direct).
 
 ## Sécurité des images
-- **JAMAIS de tag `latest`** dans les Dockerfiles et compose.yaml. Toujours une **version figée** (ex: `dunglas/frankenphp:1-php8.4`, `mysql:8.4.4`, `node:22.14-alpine`).
+- **JAMAIS de tag `latest`** dans les Dockerfiles et compose.yaml. Toujours une **version figée** (ex: `php:8.4-fpm-alpine`, `nginx:1.27-alpine`, `mysql:8.4.4`, `node:22.14-alpine`).
 - Avant de référencer une image Docker, **vérifier les tags disponibles** sur Docker Hub.
 - Raisons : reproductibilité des builds, pas de mise à jour surprise, traçabilité.
 
-## Architecture multi-stage (FrankenPHP + Symfony)
+## Architecture multi-stage (PHP-FPM + Nginx + Symfony)
 
-### Stages obligatoires
+### Stages obligatoires (Dockerfile PHP)
 ```
-frankenphp_upstream  →  Image de base FrankenPHP (tag figé)
-frankenphp_base      →  Extensions PHP, Composer, config commune
-frankenphp_dev       →  Xdebug, php.ini-development, worker --watch
-frankenphp_prod      →  php.ini-production, opcache optimisé, sans dev deps
+php_upstream  →  Image de base PHP-FPM (tag figé, ex: php:8.4-fpm-alpine)
+php_base      →  Extensions PHP, Composer, config commune
+php_dev       →  Xdebug, php.ini-development
+php_prod      →  php.ini-production, opcache optimisé, sans dev deps
 ```
+
+### Nginx
+- Utiliser une image Nginx officielle avec tag figé (ex: `nginx:1.27-alpine`).
+- Configurer le virtual host pour proxy les requêtes PHP vers le container PHP-FPM via FastCGI (`fastcgi_pass php:9000`).
+- Servir les assets statiques directement depuis Nginx.
 
 ### Règles par stage
 
@@ -32,7 +37,6 @@ frankenphp_prod      →  php.ini-production, opcache optimisé, sans dev deps
 - `APP_ENV=dev`
 - Installer Xdebug (`XDEBUG_MODE=off` par défaut, activable via env).
 - Utiliser `php.ini-development`.
-- Worker mode avec `--watch` pour hot reload : `FRANKENPHP_WORKER_CONFIG=watch`.
 - **Ne PAS copier le code source** dans l'image dev (bind mount via compose).
 
 **Prod** :
@@ -43,13 +47,13 @@ frankenphp_prod      →  php.ini-production, opcache optimisé, sans dev deps
 - Copier le code source ensuite.
 - `composer dump-autoload --classmap-authoritative --no-dev`.
 - `composer dump-env prod`.
-- Exécuter en non-root quand possible (`USER www-data` + `CAP_NET_BIND_SERVICE`).
+- Exécuter en non-root quand possible (`USER www-data`).
 
-## Gestion des caches — Règle d'or
+## Gestion des caches en dev
 
-> **En dev : aucun cache persistant dans un volume nommé.**
-> Tout cache doit être éphémère (tmpfs ou anonymous volume) pour éviter les incohérences
-> qui nécessitent un rebuild ou un reboot du container.
+- `var/cache/` et `var/log/` vivent dans le bind mount (visibles dans l'IDE).
+- En cas de cache stale après un changement de branche ou de config : `rm -rf var/cache/*`.
+- **Ne PAS utiliser de volume nommé** pour `var/cache/` en dev → risque de cache stale persistant.
 
 ### Dev — compose.yaml
 
@@ -58,23 +62,23 @@ services:
   php:
     build:
       context: .
-      target: frankenphp_dev
+      target: php_dev
     volumes:
-      # Bind mount du code source
       - ./:/app
-      # Écraser var/ par un tmpfs : cache et logs éphémères, vidés à chaque restart
-      - type: tmpfs
-        target: /app/var
     environment:
       APP_ENV: dev
       XDEBUG_MODE: "off"
-```
 
-**Pourquoi tmpfs pour `var/`** :
-- `var/cache/` est régénéré automatiquement par Symfony au premier request.
-- Pas de cache stale après un `git pull`, un changement de branche ou un changement de config.
-- `var/log/` reste accessible pendant la vie du container mais ne pollue pas le host.
-- **Restart du container = cache propre**, sans `rm -rf var/cache/*` ni rebuild.
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./:/app:ro
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - php
+```
 
 ### Prod — compose.yaml
 
@@ -83,31 +87,43 @@ services:
   php:
     build:
       context: .
-      target: frankenphp_prod
+      target: php_prod
     volumes:
       # Volume nommé pour var/ en prod (persistance logs, sessions)
       - app_var:/app/var
     environment:
       APP_ENV: prod
 
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "80:80"
+    volumes:
+      - app_public:/app/public:ro
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - php
+
 volumes:
   app_var:
+  app_public:
 ```
 
 ### Récapitulatif caches par environnement
 
 | Répertoire | Dev | Prod |
 |---|---|---|
-| `var/cache/` | tmpfs (éphémère) | Dans l'image ou volume nommé |
-| `var/log/` | tmpfs (éphémère) | Volume nommé (persistant) |
+| `var/cache/` | Bind mount (visible IDE) | Dans l'image ou volume nommé |
+| `var/log/` | Bind mount (visible IDE) | Volume nommé (persistant) |
 | `vendor/` | Bind mount (via `./:/app`) | Dans l'image (COPY) |
 | `node_modules/` | Anonymous volume | Dans l'image (COPY) |
 
-## FrankenPHP — Worker mode
+## Nginx — Configuration FastCGI
 
-- **Dev** : `--watch` activé pour détecter les changements de fichiers et recharger automatiquement.
-- **Prod** : worker mode standard sans `--watch`. Configurer `max_requests` pour éviter les memory leaks.
-- Le worker mode garde l'app en mémoire : attention aux services stateful (reset entre les requêtes via Symfony Runtime).
+- Le fichier de config Nginx doit être dans `docker/nginx/default.conf`.
+- Proxy PHP via `fastcgi_pass php:9000` (nom du service compose).
+- Servir les fichiers statiques (`/bundles/`, `/build/`, assets) directement depuis Nginx.
+- `try_files $uri /index.php$is_args$args` pour le front controller Symfony.
 
 ## Commandes de référence
 
@@ -115,17 +131,16 @@ volumes:
 # Dev : rebuild sans cache si problème
 make rebuild:  ## docker compose build --no-cache php
 
-# Dev : restart propre (tmpfs = cache vidé automatiquement)
-make restart:  ## docker compose restart php
+# Dev : vider le cache Symfony
+make cc:       ## rm -rf var/cache/*
 
 # Prod : warmup cache dans le Dockerfile
 # RUN php bin/console cache:warmup
 ```
 
 ## Anti-patterns à éviter
-- ❌ Volume nommé pour `var/cache/` en dev → cache stale, nécessite rebuild.
-- ❌ `docker compose down -v` pour vider le cache → détruit aussi la DB si volume partagé.
-- ❌ Bind mount de `vendor/` en prod → lent, fragile, pas reproductible.
-- ❌ `latest` comme tag d'image → non reproductible.
-- ❌ Worker mode sans `--watch` en dev → changements de code non pris en compte.
-- ❌ Copier le code dans l'image dev → inutile avec le bind mount, ralentit le build.
+- Volume nommé pour `var/cache/` en dev → cache stale, nécessite rebuild.
+- `docker compose down -v` pour vider le cache → détruit aussi la DB si volume partagé.
+- Bind mount de `vendor/` en prod → lent, fragile, pas reproductible.
+- `latest` comme tag d'image → non reproductible.
+- Copier le code dans l'image dev → inutile avec le bind mount, ralentit le build.
