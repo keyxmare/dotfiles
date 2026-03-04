@@ -7,7 +7,22 @@
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
   },
   "permissions": {
-    "allow": [],
+    "allow": [
+      "Bash(git status)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git add*)",
+      "Bash(git commit*)",
+      "Bash(git branch*)",
+      "Bash(git checkout*)",
+      "Bash(git switch*)",
+      "Bash(git stash*)",
+      "Bash(git merge*)",
+      "Bash(git rebase*)",
+      "Bash(git pull*)",
+      "Bash(git fetch*)",
+      "Bash(git push*)"
+    ],
     "deny": []
   },
   "hooks": {
@@ -22,5 +37,6 @@
         ]
       }
     ]
-  }
+  },
+  "effortLevel": "high"
 }
