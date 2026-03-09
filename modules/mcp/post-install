@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+GREEN=$'\033[0;32m'
+YELLOW=$'\033[0;33m'
+DIM=$'\033[2m'
+BOLD=$'\033[1m'
+RESET=$'\033[0m'
+
+CHAR_CHECK=$(printf '\xe2\x9c\x93')
+CHAR_WARN=$(printf '\xe2\x9a\xa0')
+ICON_OK="${GREEN}${CHAR_CHECK}${RESET}"
+ICON_WARN="${YELLOW}${CHAR_WARN}${RESET}"
+
+ok()   { printf "  ${ICON_OK}  %s\n" "$*"; }
+warn() { printf "  ${ICON_WARN}  %s\n" "$*"; }
+
+chmod +x "$HOME/.local/share/mcp/redmine/server.py"
+ok "server.py marked executable"
+
+CONFIG_DIR="$HOME/.config/redmine"
+KEY_FILE="$CONFIG_DIR/api_key"
+
+if [[ ! -f "$KEY_FILE" ]]; then
+    mkdir -p "$CONFIG_DIR"
+    warn "API key missing: ${BOLD}$KEY_FILE${RESET}"
+    printf "    ${DIM}Create it with: echo 'YOUR_KEY' > %s${RESET}\n" "$KEY_FILE"
+else
+    ok "API key found"
+fi
+
+if command -v claude &>/dev/null; then
+    SERVER_PATH="$HOME/.local/share/mcp/redmine/server.py"
+    EXISTING=$(python3 -c "
+import json, sys
+with open('$HOME/.claude.json') as f:
+    data = json.load(f)
+srv = data.get('mcpServers', {}).get('redmine', {})
+args = srv.get('args', [])
+print(' '.join(args))
+" 2>/dev/null || true)
+    if [[ "$EXISTING" == *"-u"*"$SERVER_PATH"* ]]; then
+        ok "MCP server already registered"
+    else
+        claude mcp remove redmine >/dev/null 2>&1 || true
+        claude mcp add --scope user redmine -- python3 -u "$SERVER_PATH" >/dev/null 2>&1
+        ok "MCP server registered (scope: user)"
+    fi
+else
+    warn "claude CLI not found — MCP server not registered"
+    printf "    ${DIM}Run: claude mcp add --scope user redmine -- python3 -u %s${RESET}\n" "$HOME/.local/share/mcp/redmine/server.py"
+fi
