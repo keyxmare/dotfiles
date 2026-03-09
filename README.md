@@ -21,18 +21,18 @@ modules/           # Dotfile modules (each synced with a source directory)
 # List available modules
 dotfiles list
 
-# Check differences between source and dotfiles
+# Check differences between host config and repo
 dotfiles status claude
 
-# Copy source files into dotfiles repo
-dotfiles push claude
+# Save host config → dotfiles repo
+dotfiles save claude
 
-# Deploy dotfiles back to source locations
-dotfiles pull claude
+# Install dotfiles repo → host config
+dotfiles install claude
 
 # Apply to all modules
-dotfiles push --all
-dotfiles pull --all --force
+dotfiles save --all
+dotfiles install --all --force
 ```
 
 ## Setup

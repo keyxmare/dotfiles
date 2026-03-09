@@ -55,10 +55,10 @@ usage() {
     printf "    dotfiles ${CYAN}<command>${RESET} ${DIM}[options]${RESET} ${CYAN}<module|--all>${RESET}\n"
     echo
     printf "  ${BOLD}COMMANDS${RESET}\n"
-    printf "    ${CYAN}push${RESET}   ${DIM}<module>${RESET}   Copy source ${DIM}→${RESET} dotfiles\n"
-    printf "    ${CYAN}pull${RESET}   ${DIM}<module>${RESET}   Copy dotfiles ${DIM}→${RESET} source\n"
-    printf "    ${CYAN}status${RESET} ${DIM}<module>${RESET}   Show diffs between source and dotfiles\n"
-    printf "    ${CYAN}list${RESET}              List available modules\n"
+    printf "    ${CYAN}save${RESET}    ${DIM}<module>${RESET}   Host config ${DIM}→${RESET} dotfiles repo\n"
+    printf "    ${CYAN}install${RESET} ${DIM}<module>${RESET}   Dotfiles repo ${DIM}→${RESET} host config\n"
+    printf "    ${CYAN}status${RESET}  ${DIM}<module>${RESET}   Show diffs between host and repo\n"
+    printf "    ${CYAN}list${RESET}               List available modules\n"
     echo
     printf "  ${BOLD}OPTIONS${RESET}\n"
     printf "    ${CYAN}--all${RESET}, ${CYAN}-a${RESET}        Apply command to all modules\n"
@@ -212,11 +212,11 @@ status_item() {
 }
 
 # ─── Commands ─────────────────────────────────────────────────────────────────
-do_push() {
+do_save() {
     local module="$1"
     load_module "$module"
     echo
-    section "$module"
+    section "$module  ${DIM}(save: host → repo)${RESET}"
     printf "    ${DIM}%s → modules/%s/${RESET}\n" "$SOURCE_DIR" "$module"
     echo
     for item in "${SYNC_ITEMS[@]}"; do
@@ -224,11 +224,11 @@ do_push() {
     done
 }
 
-do_pull() {
+do_install() {
     local module="$1"
     load_module "$module"
     echo
-    section "$module"
+    section "$module  ${DIM}(install: repo → host)${RESET}"
     printf "    ${DIM}modules/%s/ → %s${RESET}\n" "$module" "$SOURCE_DIR"
     echo
     for item in "${SYNC_ITEMS[@]}"; do
@@ -240,8 +240,9 @@ do_status() {
     local module="$1"
     load_module "$module"
     echo
-    section "$module"
-    printf "    ${DIM}%s${RESET}\n" "$SOURCE_DIR"
+    section "$module  ${DIM}(host: %s)${RESET}"
+    printf "    ${DIM}host:  %s${RESET}\n" "$SOURCE_DIR"
+    printf "    ${DIM}repo:  modules/%s/${RESET}\n" "$module"
     echo
     for item in "${SYNC_ITEMS[@]}"; do
         status_item "$SOURCE_DIR/$item" "$MODULES_DIR/$module/$item" "$item"
@@ -255,7 +256,7 @@ TARGET=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        push|pull|status|list) COMMAND="$1" ;;
+        save|install|status|list) COMMAND="$1" ;;
         --all|-a)   TARGET="--all" ;;
         --force|-f) FORCE=1 ;;
         --help|-h)  usage; exit 0 ;;
