@@ -240,7 +240,7 @@ do_status() {
     local module="$1"
     load_module "$module"
     echo
-    section "$module  ${DIM}(host: %s)${RESET}"
+    section "$module"
     printf "    ${DIM}host:  %s${RESET}\n" "$SOURCE_DIR"
     printf "    ${DIM}repo:  modules/%s/${RESET}\n" "$module"
     echo
