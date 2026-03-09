@@ -1,0 +1,19 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+
+# Secrets
+.env
+.env.*
+*.key
+*.pem
+
+# Claude Code local state
+.claude/task-state.local.md
