@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+input=$(cat)
+file_path=$(printf '%s' "$input" | grep -oE '"file_path"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 | sed 's/.*"file_path"[[:space:]]*:[[:space:]]*"//;s/"$//')
+
+[[ -z "$file_path" ]] && exit 0
+
+case "$file_path" in
+    *.env.example|*.env.*.example) exit 0 ;;
+    *.env|*.env.*|*.pem|*.key|*.p12|*.credentials|*.keystore)
+        printf 'Fichier sensible protégé: %s' "$file_path" >&2
+        exit 2
+        ;;
+esac

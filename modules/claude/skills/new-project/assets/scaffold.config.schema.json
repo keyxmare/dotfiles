@@ -1,0 +1,301 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "scaffold.config.json",
+  "description": "Configuration du projet générée par /new-project. Source de vérité pour les micro-generators.",
+  "type": "object",
+  "required": ["version", "skill_version", "created_at", "name", "description", "type", "complexity", "profile"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+$"
+    },
+    "skill_version": {
+      "type": "string",
+      "description": "Version du skill new-project utilisée pour générer ce projet",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "description": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["web", "cli", "lib"]
+    },
+    "preset": {
+      "type": ["string", "null"],
+      "enum": ["saas", "api", "backoffice", "landing", "marketplace", "blog", "headless", "microservice", "pwa", "ai-app", null]
+    },
+    "backend": {
+      "type": ["string", "null"],
+      "enum": ["symfony", null]
+    },
+    "frontend": {
+      "type": ["string", "null"],
+      "enum": ["nuxt", "vue", null]
+    },
+    "database": {
+      "type": ["string", "null"],
+      "enum": ["postgresql", "mysql", "sqlite", null]
+    },
+    "task_runner": {
+      "type": "string",
+      "enum": ["make", "taskfile"],
+      "default": "make",
+      "description": "Task runner : Make (défaut) ou Taskfile (go-task)"
+    },
+    "complexity": {
+      "type": "string",
+      "enum": ["simple", "advanced"]
+    },
+    "profile": {
+      "type": "string",
+      "enum": ["simple", "standard", "advanced"]
+    },
+    "layout": {
+      "type": ["string", "null"],
+      "enum": ["dashboard", "landing", "minimal", null]
+    },
+    "ui_framework": {
+      "type": ["string", "null"],
+      "enum": ["tailwind", "shadcn-vue", "nuxt-ui", "primevue", "vuetify", "none", null]
+    },
+    "package_manager": {
+      "type": ["string", "null"],
+      "enum": ["pnpm", "bun", "npm", null]
+    },
+    "test_php_framework": {
+      "type": "string",
+      "enum": ["pest", "phpunit"],
+      "default": "pest"
+    },
+    "ssr": {
+      "type": ["boolean", "null"],
+      "description": "SSR mode for Nuxt frontend. true = SSR (default), false = SPA mode.",
+      "default": true
+    },
+    "nuxt_ddd_strategy": {
+      "type": ["string", "null"],
+      "description": "DDD strategy for Nuxt frontend in advanced mode.",
+      "enum": ["directories", "layers", null]
+    },
+    "bounded_contexts": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Z][a-zA-Z]+$"
+      }
+    },
+    "modules": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["auth", "messenger", "mailer", "mercure", "file-upload", "i18n", "monitoring", "scheduler", "cache", "search", "admin"]
+      }
+    },
+    "cli_lang": {
+      "type": ["string", "null"],
+      "enum": ["php", "ts", "shell", null]
+    },
+    "lib_lang": {
+      "type": ["string", "null"],
+      "enum": ["php", "ts", null]
+    },
+    "features": {
+      "type": "object",
+      "patternProperties": {
+        "^[A-Z][a-zA-Z]+$|^_root$": {
+          "type": "object",
+          "required": ["entities", "custom"],
+          "properties": {
+            "entities": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["name", "properties", "crud"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "pattern": "^[A-Z][a-zA-Z]+$"
+                  },
+                  "properties": {
+                    "type": "object",
+                    "patternProperties": {
+                      "^[a-z][a-zA-Z_]+$": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "relations": {
+                    "type": "array",
+                    "description": "Relations Doctrine avec d'autres entités",
+                    "items": {
+                      "type": "object",
+                      "required": ["target", "type"],
+                      "properties": {
+                        "target": {
+                          "type": "string",
+                          "pattern": "^[A-Z][a-zA-Z]+$",
+                          "description": "Nom de l'entité cible"
+                        },
+                        "type": {
+                          "type": "string",
+                          "enum": ["ManyToOne", "OneToMany", "ManyToMany", "OneToOne"],
+                          "description": "Type de relation Doctrine"
+                        },
+                        "nullable": {
+                          "type": "boolean",
+                          "default": false
+                        },
+                        "inversedBy": {
+                          "type": ["string", "null"],
+                          "description": "Nom de la propriété inverse sur l'entité cible"
+                        },
+                        "mappedBy": {
+                          "type": ["string", "null"],
+                          "description": "Nom de la propriété propriétaire sur l'entité source"
+                        },
+                        "cascade": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": ["persist", "remove", "merge", "detach", "refresh"]
+                          }
+                        },
+                        "orphanRemoval": {
+                          "type": "boolean",
+                          "default": false
+                        }
+                      }
+                    }
+                  },
+                  "crud": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": ["CREATE", "READ", "LIST", "UPDATE", "PATCH", "DELETE"]
+                    }
+                  },
+                  "soft_delete": {
+                    "type": "boolean",
+                    "default": false
+                  }
+                }
+              }
+            },
+            "custom": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "config": {
+      "type": "object",
+      "description": "Surcharges de configuration par rapport aux défauts du profil"
+    },
+    "metrics": {
+      "type": "object",
+      "description": "Métriques du projet au moment de la génération — baseline pour suivi",
+      "properties": {
+        "generated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "files": {
+          "type": "integer",
+          "description": "Nombre total de fichiers générés"
+        },
+        "loc_code": {
+          "type": "integer",
+          "description": "Lignes de code (hors tests)"
+        },
+        "loc_tests": {
+          "type": "integer",
+          "description": "Lignes de tests"
+        },
+        "test_ratio": {
+          "type": "number",
+          "description": "Ratio tests/code en pourcentage"
+        },
+        "endpoints": {
+          "type": "integer",
+          "description": "Nombre d'endpoints API"
+        },
+        "entities": {
+          "type": "integer",
+          "description": "Nombre d'entités"
+        },
+        "bounded_contexts": {
+          "type": "integer",
+          "description": "Nombre de bounded contexts"
+        }
+      }
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": { "properties": { "complexity": { "const": "advanced" } } },
+      "then": { "required": ["bounded_contexts"] }
+    },
+    {
+      "if": { "properties": { "type": { "const": "web" }, "backend": { "const": "symfony" } } },
+      "then": { "required": ["database", "task_runner"] }
+    },
+    {
+      "if": { "properties": { "type": { "enum": ["cli", "lib"] } } },
+      "then": {
+        "properties": {
+          "bounded_contexts": { "maxItems": 0 },
+          "modules": { "maxItems": 0 },
+          "layout": { "const": null },
+          "ui_framework": { "const": null }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "frontend": { "const": null } } },
+      "then": {
+        "properties": {
+          "layout": { "const": null },
+          "ui_framework": { "const": null },
+          "package_manager": { "const": null },
+          "ssr": { "const": null },
+          "nuxt_ddd_strategy": { "const": null }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "frontend": { "enum": ["nuxt", "vue"] } }
+      },
+      "then": { "required": ["package_manager"] }
+    },
+    {
+      "if": { "properties": { "frontend": { "const": "vue" } } },
+      "then": {
+        "properties": {
+          "ssr": { "const": null },
+          "nuxt_ddd_strategy": { "const": null }
+        }
+      }
+    }
+  ]
+}

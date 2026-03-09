@@ -1,0 +1,24 @@
+# Module — auth
+
+- `symfony/security-bundle` dans `composer.json`.
+- `lexik/jwt-authentication-bundle` si API pure (pas de frontend), sinon sessions.
+- `config/packages/security.yaml` — firewall, provider, encoders, access control.
+- **User entity** :
+  - Simple : `src/Entity/User.php` implémentant `UserInterface`, `PasswordAuthenticatedUserInterface`.
+  - Advanced : `src/Identity/Domain/Model/User.php` + repository interface + Doctrine mapping.
+- **Backend** :
+  - `RegisterController` — `POST /api/auth/register` (validation email unique, hash password).
+  - `LoginController` — `POST /api/auth/login` (JWT) ou formulaire (session).
+  - `ProfileController` — `GET/PUT /api/auth/profile`.
+  - `LogoutController` — `POST /api/auth/logout`.
+- **Frontend** (si présent) :
+  - Pages : login, register, profil.
+  - Store Pinia `useAuthStore` — état utilisateur, token, actions login/register/logout.
+  - Middleware/guard de route pour les pages protégées.
+  - Composable `useAuth()` — accès à l'utilisateur courant.
+- **Tests** :
+  - Backend : test register, login, profil, accès non-authentifié.
+  - Frontend : test du store auth.
+- Variables `.env.example` : `JWT_SECRET_KEY`, `JWT_PUBLIC_KEY`, `JWT_PASSPHRASE` (si JWT).
+- **Rate limiting** — si `security.rate_limiting` = `true`, appliquer le rate limiter sur `LoginController` et `RegisterController`. Voir `references/security.md`.
+- Migration : table `users` avec `id`, `email`, `password`, `name`, `roles`, `created_at`.

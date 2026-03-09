@@ -1,0 +1,60 @@
+{
+  "$comment": "Versions centralisées — mise à jour manuelle ou via context7 au moment du scaffold. Le skill résout les versions dynamiquement si possible, sinon utilise ces valeurs comme fallback.",
+  "skill": "2.1.0",
+  "last_verified": "2026-03-09",
+  "max_age_days": 90,
+  "runtimes": {
+    "php": "8.4",
+    "node": "22"
+  },
+  "backend": {
+    "symfony": "8.0",
+    "symfony-object-mapper": "^8.0",
+    "doctrine-orm": "^3.4",
+    "doctrine-bundle": "^3.2",
+    "doctrine-migrations": "^4.0",
+    "phpunit": "^12.0",
+    "pest": "^3.0",
+    "phpstan": "^2.0",
+    "php-cs-fixer": "^3.0",
+    "infection": "^0.29",
+    "deptrac": "^2.0",
+    "phpat": "^1.0",
+    "open-telemetry-sdk": "^1.0",
+    "open-telemetry-exporter-otlp": "^1.0",
+    "open-telemetry-contrib-auto-symfony": "^1.0"
+  },
+  "frontend": {
+    "nuxt": "4.3",
+    "vue": "3.x",
+    "pinia": "^3.0",
+    "vitest": "^3.0",
+    "playwright": "^1.50",
+    "eslint": "^9.0",
+    "eslint-plugin-perfectionist": "^4.0",
+    "prettier": "^3.0",
+    "typescript": "^5.7",
+    "tailwindcss": "^4.0",
+    "shadcn-vue": "^0.12",
+    "nuxt-ui": "^3.0",
+    "primevue": "^4.0",
+    "vuetify": "^3.0"
+  },
+  "infrastructure": {
+    "postgres": "17",
+    "mysql": "8.4",
+    "redis": "7",
+    "rabbitmq": "4",
+    "meilisearch": "1.x",
+    "mercure": "latest",
+    "mailpit": "latest",
+    "jaeger": "latest"
+  },
+  "tools": {
+    "pnpm": "10",
+    "bun": "1.x",
+    "composer": "2.x",
+    "go-task": "3.x",
+    "deptrac": "2.x"
+  }
+}

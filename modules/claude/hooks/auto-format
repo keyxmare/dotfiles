@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+input=$(cat)
+file_path=$(printf '%s' "$input" | grep -oE '"file_path"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 | sed 's/.*"file_path"[[:space:]]*:[[:space:]]*"//;s/"$//')
+
+[[ -z "$file_path" ]] && exit 0
+[[ ! -f "$file_path" ]] && exit 0
+
+case "$file_path" in
+    *.sh|*.bash|*.zsh)
+        command -v shfmt >/dev/null 2>&1 && shfmt -w "$file_path" 2>/dev/null || true
+        ;;
+    *.php)
+        rel_path="${file_path#"$(pwd)"/}"
+        for f in compose.yaml compose.yml docker-compose.yaml docker-compose.yml; do
+            if [[ -f "$f" ]]; then
+                for svc in php backend api symfony app; do
+                    if docker compose ps --status=running --format '{{.Service}}' 2>/dev/null | grep -qx "$svc"; then
+                        docker compose exec -T "$svc" vendor/bin/php-cs-fixer fix "$rel_path" --quiet 2>/dev/null && break 2 || continue
+                    fi
+                done
+                break
+            fi
+        done
+        ;;
+    *.ts|*.tsx|*.vue|*.js|*.jsx|*.json|*.css|*.scss)
+        rel_path="${file_path#"$(pwd)"/}"
+        for f in compose.yaml compose.yml docker-compose.yaml docker-compose.yml; do
+            if [[ -f "$f" ]]; then
+                for svc in frontend node app nuxt vue; do
+                    if docker compose ps --status=running --format '{{.Service}}' 2>/dev/null | grep -qx "$svc"; then
+                        docker compose exec -T "$svc" npx prettier --write "$rel_path" 2>/dev/null && break 2 || continue
+                    fi
+                done
+                break
+            fi
+        done
+        ;;
+esac
