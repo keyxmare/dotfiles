@@ -234,6 +234,17 @@ do_install() {
     for item in "${SYNC_ITEMS[@]}"; do
         sync_item "$MODULES_DIR/$module/$item" "$SOURCE_DIR/$item" "$item"
     done
+
+    local post_install="$MODULES_DIR/$module/post-install"
+    if [[ -x "$post_install" ]]; then
+        echo
+        info "Running post-install for ${BOLD}$module${RESET}…"
+        if "$post_install"; then
+            ok "Post-install completed"
+        else
+            warn "Post-install exited with errors"
+        fi
+    fi
 }
 
 do_status() {
