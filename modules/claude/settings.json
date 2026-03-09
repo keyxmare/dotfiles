@@ -50,7 +50,14 @@
       "WebFetch",
       "WebSearch",
       "mcp__context7__resolve-library-id",
-      "mcp__context7__query-docs"
+      "mcp__context7__query-docs",
+      "mcp__redmine__redmine_get_ticket",
+      "mcp__redmine__redmine_add_note",
+      "mcp__redmine__redmine_search_tickets",
+      "mcp__redmine__redmine_list_my_tickets",
+      "mcp__redmine__redmine_tour_de_controle",
+      "mcp__redmine__redmine_squad_quotidienne",
+      "mcp__redmine__redmine_rapport"
     ],
     "deny": [
       "Bash(npm :*)",

@@ -1,0 +1,21 @@
+{
+  "version": "1",
+  "projects": [
+    {
+      "name": "v3",
+      "path": "~/PhpstormProjects/d3t-motoblouz-v3",
+      "description": "Outils de service client, appro, catalogue, merch et gestion des handlers du broker",
+      "stack": ["symfony 3.4", "php", "twig", "mysql 8"],
+      "url": {
+        "local": "http://dev-service-client.motoblouz.com"
+      },
+      "redmine_keywords": ["v3", "appro", "catalogue", "merch", "back"],
+      "commands": {
+        "start": "make start",
+        "test": "make test-phpunit",
+        "test_behat": "make test-behat"
+      }
+    }
+  ],
+  "note": "Credentials BDD dans ~/.config/claude/db.json (non tracké)"
+}
