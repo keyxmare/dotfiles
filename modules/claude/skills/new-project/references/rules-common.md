@@ -13,6 +13,15 @@ Règles applicables au skill principal et à tous les micro-generators.
 - **Tests d'architecture** (si `tests.architecture: true`) : `deptrac` vérifie les règles de dépendances entre couches. Voir `references/architecture-tests.md`.
 - **Relations Doctrine** : les relations entre entités génèrent les attributs ORM appropriés et les types TypeScript. Voir la section "Relations entre entités" dans `references/ddd-features.md`.
 
+## Frontend — règles critiques
+
+- **ZÉRO données hardcodées** — tout contenu affiché provient du store Pinia → service API → backend. Si `"Mon produit"`, `"Lorem ipsum"`, `19.99` ou tout texte d'exemple apparaît en dur dans un `.vue`, c'est un bug à corriger immédiatement.
+- **Templates framework-spécifiques** — utiliser `*-nuxt.vue.tpl` pour Nuxt et `*-vue.vue.tpl` pour Vue.js. Ne jamais importer `useRoute` depuis `vue-router` dans du code Nuxt (auto-importé).
+- **Liens fonctionnels** — chaque `NuxtLink`/`RouterLink` pointe vers une page/route existante. Vérifier après génération.
+- **Navigation à jour** — après chaque entité CRUD, mettre à jour le layout sidebar avec un lien vers la page liste.
+- **data-testid** — chaque élément interactif reçoit un `data-testid` pour les tests E2E.
+- **Résolution des placeholders** — lire `references/template-resolution.md` pour les mappings propriété → composant UI et les conventions de routage.
+
 ## Fichiers
 
 - **Utiliser `Edit`** pour modifier les fichiers existants, `Write` uniquement pour les nouveaux fichiers.

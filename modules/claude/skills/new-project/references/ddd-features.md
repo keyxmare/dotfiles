@@ -46,14 +46,66 @@ En mode simple, un seul Controller et un seul Service regroupent toutes les opé
 
 ## Frontend — par opération CRUD
 
+**Règle fondamentale : JAMAIS de données hardcodées. Tout contenu provient de l'API via le store Pinia.**
+
+Lire `references/template-resolution.md` pour les règles complètes de résolution des placeholders, le mapping propriété → composant UI, et les conventions de routage.
+
+### Templates par framework
+
+Utiliser les templates spécifiques au framework frontend :
+
+| Fichier | Nuxt | Vue.js |
+|---|---|---|
+| Page liste | `list-page-nuxt.vue.tpl` | `list-page-vue.vue.tpl` |
+| Page détail | `detail-page-nuxt.vue.tpl` | `detail-page-vue.vue.tpl` |
+| Page formulaire | `form-page-nuxt.vue.tpl` | `form-page-vue.vue.tpl` |
+| Service API | `service-nuxt.ts.tpl` | `service-vue.ts.tpl` |
+| Store Pinia | `store.ts.tpl` | `store.ts.tpl` |
+
+**Ne plus utiliser** `page.vue.tpl`, `form-page.vue.tpl`, `service.ts.tpl` (dépréciés).
+
+### Fichiers générés par opération CRUD
+
 | Opération | Fichiers générés |
 |---|---|
-| CREATE | Page formulaire, store Pinia action `create()`, service API `post()` |
-| READ | Page détail, store getter + action `fetchOne()`, service API `get()` |
-| LIST | Page liste, store state + action `fetchAll()`, service API `list()` |
-| UPDATE | Page formulaire (réutilise CREATE), store action `update()`, service API `put()` |
-| DELETE | Composant modal confirmation, store action `remove()`, service API `delete()` |
-| PATCH | Réutilise le formulaire UPDATE (champs optionnels), store action `patch()`, service API `patch()` |
+| CREATE | Page formulaire (`form-page-{fw}.vue.tpl`), store action `create()`, service `post()` |
+| READ | Page détail (`detail-page-{fw}.vue.tpl`), store action `fetchOne()`, service `get()` |
+| LIST | Page liste (`list-page-{fw}.vue.tpl`), store state + action `fetchAll()`, service `list()` |
+| UPDATE | Réutilise la page formulaire (mode edit via route param `id`), store `update()`, service `put()` |
+| DELETE | Modale inline dans la page liste (data-testid `delete-modal`), store `remove()`, service `delete()` |
+| PATCH | Réutilise le formulaire UPDATE (champs optionnels), store `patch()`, service `patch()` |
+
+### Convention de routage frontend
+
+#### Nuxt (file-based routing)
+
+| Page | URL | Fichier (directories DDD) | Fichier (simple) |
+|---|---|---|---|
+| Liste | `/{context}/{entities}` | `app/{context}/pages/{entities}/index.vue` | `app/pages/{entities}/index.vue` |
+| Détail | `/{context}/{entities}/{id}` | `app/{context}/pages/{entities}/[id].vue` | `app/pages/{entities}/[id].vue` |
+| Création | `/{context}/{entities}/new` | `app/{context}/pages/{entities}/new.vue` | `app/pages/{entities}/new.vue` |
+| Édition | `/{context}/{entities}/{id}/edit` | `app/{context}/pages/{entities}/[id]/edit.vue` | `app/pages/{entities}/[id]/edit.vue` |
+
+#### Vue.js (route manuelle dans routes.ts)
+
+| Page | URL | Fichier (DDD) | Fichier (simple) |
+|---|---|---|---|
+| Liste | `/{context}/{entities}` | `src/{context}/pages/{Entity}List.vue` | `src/pages/{Entity}List.vue` |
+| Détail | `/{context}/{entities}/:id` | `src/{context}/pages/{Entity}Detail.vue` | `src/pages/{Entity}Detail.vue` |
+| Création | `/{context}/{entities}/new` | `src/{context}/pages/{Entity}Form.vue` | `src/pages/{Entity}Form.vue` |
+| Édition | `/{context}/{entities}/:id/edit` | `src/{context}/pages/{Entity}Form.vue` | `src/pages/{Entity}Form.vue` |
+
+### Intégration navigation
+
+Après génération des pages, **mettre à jour le layout** (sidebar/nav) pour ajouter un lien vers la page liste de chaque entité. Voir `references/template-resolution.md` section "Intégration navigation".
+
+### Vue.js — Routes
+
+Après génération des pages Vue.js, ajouter les routes dans `src/{context}/routes.ts` et les importer dans `src/app/router.ts`.
+
+### Attributs data-testid
+
+Chaque élément interactif reçoit un `data-testid` pour les tests E2E. Convention complète dans `references/template-resolution.md` section "Attributs data-testid".
 
 ## Frontend — types
 

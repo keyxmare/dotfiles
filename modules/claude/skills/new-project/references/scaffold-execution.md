@@ -275,11 +275,36 @@ Pour les features custom ou complexes : appeler `EnterPlanMode`, lister les fich
  └── 9. make quality ← lint + tests, tout doit passer
 ```
 
-Lire `references/ddd-features.md` pour les tables de génération CRUD, la pyramide de tests et les conventions de nommage. Utiliser les templates dans `assets/templates/` comme squelettes (remplacer les placeholders `{{CONTEXT}}`, `{{ENTITY}}`, etc.).
+Lire `references/ddd-features.md` pour les tables de génération CRUD, la pyramide de tests et les conventions de nommage. Lire `references/template-resolution.md` pour les règles de résolution des placeholders, le mapping propriété → composant UI, et les conventions de routage frontend.
+
+Utiliser les templates dans `assets/templates/` comme squelettes. **Sélectionner les templates par framework** :
+- Nuxt → `*-nuxt.vue.tpl`, `service-nuxt.ts.tpl`
+- Vue.js → `*-vue.vue.tpl`, `service-vue.ts.tpl`
+- Communs → `store.ts.tpl`, `entity-type.ts.tpl`, `e2e-crud.spec.ts.tpl`
+
+**Règles critiques pour la génération frontend :**
+
+1. **Zéro données hardcodées** — tout contenu affiché provient du store Pinia (lui-même connecté au service API). Si du texte comme `"Mon produit"`, `"Lorem ipsum"`, ou `19.99` apparaît en dur dans un `.vue`, c'est un bug à corriger immédiatement.
+2. **Liens fonctionnels** — chaque `NuxtLink`/`RouterLink` doit pointer vers un fichier/route qui existe. Après génération, vérifier que toutes les cibles existent.
+3. **Navigation à jour** — après chaque entité, mettre à jour le layout (sidebar) avec un lien vers la page liste.
+4. **Routes Vue.js** — si Vue.js, ajouter les routes dans `routes.ts` après chaque entité.
+5. **Résolution des placeholders** — suivre `references/template-resolution.md` pour le mapping propriété → champ de formulaire, propriété → colonne de table, et valeurs par défaut.
+6. **data-testid** — chaque élément interactif reçoit un `data-testid` (convention dans `references/template-resolution.md`).
 
 Si `tests.php_framework` = `pest` : adapter les templates de test PHPUnit en syntaxe Pest. Voir la section "Tests Pest" dans `references/ddd-features.md` pour les exemples et la table de correspondance.
 
 Si `make quality` échoue après une feature : corriger immédiatement avant de passer à la feature suivante.
+
+### Vérification post-feature
+
+Après avoir généré tous les fichiers d'une feature (backend + frontend + tests), exécuter cette checklist **avant** `make quality` :
+
+1. **Liens** — vérifier que chaque `NuxtLink to="..."` / `RouterLink :to="..."` pointe vers un fichier/route existant
+2. **API URLs** — vérifier que le `BASE_URL` dans le service frontend (`/api/{context}/{entities}`) correspond aux routes du backend
+3. **Données dynamiques** — grep dans les `.vue` générés pour détecter des chaînes suspectes (données d'exemple hardcodées)
+4. **Store connecté** — chaque page utilise le store et appelle les actions appropriées
+5. **Types cohérents** — le type TS du formulaire et de l'entité correspondent aux propriétés backend
+6. **Navigation** — le layout sidebar contient un lien vers la page liste de l'entité
 
 ### Commits intermédiaires
 

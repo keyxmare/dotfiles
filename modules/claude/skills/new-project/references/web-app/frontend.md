@@ -161,37 +161,50 @@ export default defineNuxtConfig({
 
 Ajouter `tsconfig.*.json` (sauf `tsconfig.json`) au `.gitignore` frontend.
 
-### Client HTTP (template service.ts.tpl)
+### Templates frontend par framework
 
-Le template `service.ts.tpl` utilise un placeholder `{{HTTP_CLIENT}}` qui doit être remplacé selon le framework frontend :
+Depuis la v2.2, le skill utilise des **templates spécifiques par framework** pour garantir que le code généré utilise les bons patterns (auto-imports Nuxt, `NuxtLink` vs `RouterLink`, `$fetch` vs `fetch`, etc.).
 
-**Vue.js** — `fetch` natif :
-```typescript
-async function request<T>(url: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(url, {
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    ...options,
-  })
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-  }
-  return response.json()
-}
-```
+#### Sélection des templates
 
-**Nuxt** — `$fetch` (oFetch, gère automatiquement JSON et erreurs) :
-```typescript
-async function request<T>(url: string, options?: Parameters<typeof $fetch>[1]): Promise<T> {
-  return $fetch<T>(url, {
-    headers: { 'Content-Type': 'application/json' },
-    ...options,
-  })
-}
-```
+| Fichier | Nuxt | Vue.js |
+|---|---|---|
+| Page liste | `list-page-nuxt.vue.tpl` | `list-page-vue.vue.tpl` |
+| Page détail | `detail-page-nuxt.vue.tpl` | `detail-page-vue.vue.tpl` |
+| Page formulaire | `form-page-nuxt.vue.tpl` | `form-page-vue.vue.tpl` |
+| Service API | `service-nuxt.ts.tpl` | `service-vue.ts.tpl` |
+| Store Pinia | `store.ts.tpl` | `store.ts.tpl` |
+| Types | `entity-type.ts.tpl` | `entity-type.ts.tpl` |
+| Test store | `store-test.ts.tpl` | `store-test.ts.tpl` |
+| Test E2E | `e2e-crud.spec.ts.tpl` | `e2e-crud.spec.ts.tpl` |
 
-À partir de Nuxt 4.2, `$fetch` supporte le **abort control natif** : les requêtes en cours sont automatiquement annulées lorsqu'un composant est démonté. Si le service est utilisé dans un composable avec `useAsyncData`, le cleanup est automatique.
+**Templates dépréciés** — ne plus utiliser : `page.vue.tpl`, `form-page.vue.tpl`, `service.ts.tpl`.
 
-De même, le template `store-test.ts.tpl` utilise `{{STORE_IMPORT_PATH}}` et `{{SERVICE_IMPORT_PATH}}` qui doivent être remplacés :
+#### Différences clés Nuxt vs Vue.js
+
+| Aspect | Nuxt | Vue.js |
+|---|---|---|
+| Imports Vue | Auto-importés (ne pas importer `ref`, `computed`, etc.) | Import explicite depuis `'vue'` |
+| Route/Router | Auto-importés | Import depuis `'vue-router'` |
+| Liens | `<NuxtLink to="...">` | `<RouterLink :to="{ name: '...' }">` |
+| Navigation | `navigateTo('/path')` | `router.push('/path')` |
+| Client HTTP | `$fetch` (oFetch) | `fetch` natif |
+| Routing | File-based (pages/) | Routes manuelles (routes.ts) |
+| Page meta | `definePageMeta({ layout: '...' })` | Route meta |
+
+#### Résolution des placeholders
+
+Voir `references/template-resolution.md` pour :
+- Le mapping propriété → composant UI (table, formulaire, détail)
+- Les conventions de routage (URL → fichier → route)
+- Les attributs `data-testid`
+- Les valeurs par défaut de formulaire
+- L'intégration navigation (sidebar)
+- La vérification post-génération
+
+#### Import paths
+
+Le template `store-test.ts.tpl` utilise `{{STORE_IMPORT_PATH}}` et `{{SERVICE_IMPORT_PATH}}` :
 - **Nuxt** : `../../../app/{context}/stores/{entity}` et `../../../app/{context}/services/{entity}.service`
 - **Vue.js** : `../../../src/{context}/stores/{entity}` et `../../../src/{context}/services/{entity}.service`
 

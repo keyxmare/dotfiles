@@ -72,11 +72,20 @@ Ne pas charger les fichiers de référence en avance. Les lire **uniquement au m
 | 6.8 — Éléments communs | `references/common.md` | Intégralité |
 | 6.8 — Sécurité | `references/security.md` | Sections selon config |
 | 6.11 — Archi tests | `references/architecture-tests.md` | Intégralité (si `tests.architecture` = `true`) |
-| 8 — Features | `references/ddd-features.md` | Intégralité |
+| 8 — Features | `references/ddd-features.md` + `references/template-resolution.md` | Intégralité des deux |
 | 8 — CLI/lib | `references/project-types.md` | Section du type concerné |
 | Toutes les étapes | `references/rules-common.md` | Règles communes |
 
-Les templates (`assets/templates/*.tpl`) sont lus individuellement au moment de générer chaque fichier.
+### Sélection des templates frontend
+
+Les templates frontend sont **spécifiques au framework**. Ne pas mélanger les patterns Nuxt et Vue.js.
+
+| Framework | Templates pages | Template service |
+|---|---|---|
+| **Nuxt** | `list-page-nuxt.vue.tpl`, `detail-page-nuxt.vue.tpl`, `form-page-nuxt.vue.tpl` | `service-nuxt.ts.tpl` |
+| **Vue.js** | `list-page-vue.vue.tpl`, `detail-page-vue.vue.tpl`, `form-page-vue.vue.tpl` | `service-vue.ts.tpl` |
+| **Communs** | `store.ts.tpl`, `entity-type.ts.tpl`, `e2e-crud.spec.ts.tpl`, `store-test.ts.tpl` | — |
+
 Templates Pest (`*-pest.php.tpl`) : utilisés si `tests.php_framework` = `pest`. Templates standards (`*.php.tpl`) : utilisés si `tests.php_framework` = `phpunit`.
 
 `assets/versions.json` est lu une fois à l'étape 6 pour résoudre les versions des dépendances.
@@ -438,7 +447,7 @@ Résumé du projet — <nom>
   Sécurité       headers, rate-limiting, audit
   SSR            oui (Nuxt) / — (Vue.js)
   DDD frontend   directories / layers (Nuxt)
-  Skill version  2.1.0
+  Skill version  2.2.0
   Surcharges     ci.auto_deploy_prod: true
 ```
 
@@ -578,6 +587,34 @@ Lire `references/scaffold-execution.md` au moment de passer à l'étape 6. Ce fi
 Voir `references/rules-common.md` pour les règles communes (strict_types, final/readonly, Edit vs Write, Docker, tests, Pest, conflits).
 
 Les conventions de code spécifiques (typage, PSR-12, Composition API, nommage, etc.) sont définies dans les fichiers de stack (`~/.claude/stacks/*.md`) et `~/.claude/CONFIG.md`.
+
+### Quality gates — frontend
+
+**Règles critiques** à respecter pour chaque page frontend générée :
+
+1. **Zéro données hardcodées** — tout contenu affiché provient du store Pinia (connecté au service API). Si du texte statique d'exemple apparaît dans un `.vue` (ex: `"Mon produit"`, `"Lorem"`, `42`, `19.99`), c'est un bug.
+2. **Liens fonctionnels** — chaque `NuxtLink`/`RouterLink` pointe vers une page/route qui existe. Après chaque feature, vérifier que les cibles existent.
+3. **Navigation à jour** — après chaque entité, le layout (sidebar/nav) est mis à jour avec un lien vers la page liste.
+4. **data-testid** — chaque élément interactif a un `data-testid` (convention dans `references/template-resolution.md`).
+5. **Templates framework-spécifiques** — utiliser les templates `-nuxt` ou `-vue` selon le framework choisi. Ne jamais importer `useRoute` depuis `vue-router` dans du code Nuxt.
+6. **Routes Vue.js** — si Vue.js, ajouter les routes dans `routes.ts` et les importer dans le router principal.
+
+### Vérification post-feature (étape 8)
+
+Après génération de chaque feature, **avant** `make quality` :
+
+```
+Checklist feature :
+  [ ] Liens — NuxtLink/RouterLink pointent vers des pages existantes
+  [ ] API URLs — BASE_URL service = routes backend
+  [ ] Données dynamiques — pas de chaînes d'exemple hardcodées dans les .vue
+  [ ] Store connecté — pages utilisent le store, pas de fetch inline
+  [ ] Types cohérents — types TS = propriétés backend
+  [ ] Navigation — sidebar mise à jour
+  [ ] data-testid — éléments interactifs identifiés
+```
+
+Voir `references/template-resolution.md` pour les détails complets.
 
 ### Doctrine — PHP attributes (Symfony 8)
 

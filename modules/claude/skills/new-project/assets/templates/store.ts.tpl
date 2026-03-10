@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { {{ENTITY}} } from '../types/{{ENTITY_KEBAB}}'
-import { {{ENTITY_CAMEL}}Service } from '../services/{{ENTITY_KEBAB}}.service'
+import type { {{ENTITY}} } from '{{TYPE_IMPORT_PATH}}'
+import { {{ENTITY_CAMEL}}Service } from '{{SERVICE_IMPORT_PATH}}'
 
 export const use{{ENTITY}}Store = defineStore('{{ENTITY_CAMEL}}', () => {
   const items = ref<{{ENTITY}}[]>([])
@@ -13,6 +13,10 @@ export const use{{ENTITY}}Store = defineStore('{{ENTITY_CAMEL}}', () => {
   const limit = ref(20)
 
   const totalPages = computed(() => Math.ceil(total.value / limit.value))
+
+  function clearError() {
+    error.value = null
+  }
 
   async function fetchAll(params?: { page?: number; limit?: number }) {
     loading.value = true
@@ -64,6 +68,7 @@ export const use{{ENTITY}}Store = defineStore('{{ENTITY_CAMEL}}', () => {
       const updated = await {{ENTITY_CAMEL}}Service.put(id, data)
       const index = items.value.findIndex((item) => item.id === id)
       if (index !== -1) items.value[index] = updated
+      current.value = updated
       return updated
     } catch (e) {
       error.value = (e as Error).message
@@ -79,6 +84,7 @@ export const use{{ENTITY}}Store = defineStore('{{ENTITY_CAMEL}}', () => {
     try {
       await {{ENTITY_CAMEL}}Service.delete(id)
       items.value = items.value.filter((item) => item.id !== id)
+      if (current.value?.id === id) current.value = null
     } catch (e) {
       error.value = (e as Error).message
       throw e
@@ -87,5 +93,20 @@ export const use{{ENTITY}}Store = defineStore('{{ENTITY_CAMEL}}', () => {
     }
   }
 
-  return { items, current, loading, error, total, page, limit, totalPages, fetchAll, fetchOne, create, update, remove }
+  return {
+    items,
+    current,
+    loading,
+    error,
+    total,
+    page,
+    limit,
+    totalPages,
+    clearError,
+    fetchAll,
+    fetchOne,
+    create,
+    update,
+    remove,
+  }
 })

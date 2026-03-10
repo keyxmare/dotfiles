@@ -31,6 +31,7 @@
       "Bash(git remote:*)",
       "Bash(git tag:*)",
       "Bash(ls:*)",
+      "Bash(find:*)",
       "Bash(wc:*)",
       "Bash(mkdir:*)",
       "Bash(cp:*)",
