@@ -15,7 +15,15 @@ ICON_WARN="${YELLOW}${CHAR_WARN}${RESET}"
 ok()   { printf "  ${ICON_OK}  %s\n" "$*"; }
 warn() { printf "  ${ICON_WARN}  %s\n" "$*"; }
 
-chmod +x "$HOME/.local/share/mcp/redmine/server.py"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+MCP_DIR="$HOME/.local/share/mcp"
+
+section() { printf "\n  ${BOLD}%s${RESET}\n\n" "$*"; }
+
+# ─── Redmine ──────────────────────────────────────────────────────────────────
+section "redmine"
+
+chmod +x "$MCP_DIR/redmine/server.py"
 ok "server.py marked executable"
 
 CONFIG_DIR="$HOME/.config/redmine"
@@ -30,7 +38,7 @@ else
 fi
 
 if command -v claude &>/dev/null; then
-    SERVER_PATH="$HOME/.local/share/mcp/redmine/server.py"
+    SERVER_PATH="$MCP_DIR/redmine/server.py"
     EXISTING=$(python3 -c "
 import json, sys
 with open('$HOME/.claude.json') as f:
@@ -48,5 +56,15 @@ print(' '.join(args))
     fi
 else
     warn "claude CLI not found — MCP server not registered"
-    printf "    ${DIM}Run: claude mcp add --scope user redmine -- python3 -u %s${RESET}\n" "$HOME/.local/share/mcp/redmine/server.py"
+    printf "    ${DIM}Run: claude mcp add --scope user redmine -- python3 -u %s${RESET}\n" "$MCP_DIR/redmine/server.py"
+fi
+
+# ─── Backlog.md ───────────────────────────────────────────────────────────────
+section "backlog.md"
+
+BACKLOG_INSTALL="$MCP_DIR/backlog/install.sh"
+if [[ -x "$BACKLOG_INSTALL" ]]; then
+    "$BACKLOG_INSTALL"
+else
+    warn "backlog/install.sh not found or not executable"
 fi

@@ -1,0 +1,129 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+GREEN=$'\033[0;32m'
+YELLOW=$'\033[0;33m'
+RED=$'\033[0;31m'
+DIM=$'\033[2m'
+BOLD=$'\033[1m'
+RESET=$'\033[0m'
+
+CHAR_CHECK=$(printf '\xe2\x9c\x93')
+CHAR_WARN=$(printf '\xe2\x9a\xa0')
+CHAR_CROSS=$(printf '\xe2\x9c\x97')
+
+ok()   { printf "  ${GREEN}${CHAR_CHECK}${RESET}  %s\n" "$*"; }
+warn() { printf "  ${YELLOW}${CHAR_WARN}${RESET}  %s\n" "$*"; }
+err()  { printf "  ${RED}${CHAR_CROSS}${RESET}  %s\n" "$*" >&2; }
+
+BREW_INSTALL_URL="https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
+
+detect_os() {
+    case "$(uname -s)" in
+        Darwin) echo "macos" ;;
+        Linux)
+            if grep -qi microsoft /proc/version 2>/dev/null; then
+                echo "wsl"
+            else
+                echo "linux"
+            fi
+            ;;
+        *) echo "unsupported" ;;
+    esac
+}
+
+brew_prefix() {
+    local os="$1" arch="$2"
+    case "$os" in
+        macos)
+            [[ "$arch" == "arm64" ]] && echo "/opt/homebrew" || echo "/usr/local"
+            ;;
+        linux|wsl)
+            echo "/home/linuxbrew/.linuxbrew"
+            ;;
+    esac
+}
+
+load_brew_env() {
+    local prefix="$1"
+    if [[ -x "$prefix/bin/brew" ]]; then
+        eval "$("$prefix/bin/brew" shellenv)"
+        return 0
+    fi
+    return 1
+}
+
+install_brew() {
+    local os="$1"
+
+    printf "\n  ${BOLD}Homebrew${RESET} ${DIM}— install${RESET}\n"
+    printf "  ${DIM}OS: %s (%s)${RESET}\n\n" "$os" "$(uname -m)"
+
+    if command -v brew &>/dev/null; then
+        local version
+        version=$(brew --version 2>/dev/null | head -1)
+        ok "Already installed ${DIM}(${version})${RESET}"
+        return 0
+    fi
+
+    case "$os" in
+        macos|linux|wsl) ;;
+        *)
+            err "Homebrew is not supported on this OS"
+            return 1
+            ;;
+    esac
+
+    if [[ "$os" == "linux" || "$os" == "wsl" ]]; then
+        local missing_deps=()
+        command -v curl &>/dev/null || missing_deps+=("curl")
+        command -v git &>/dev/null || missing_deps+=("git")
+        command -v gcc &>/dev/null && command -v g++ &>/dev/null || missing_deps+=("build-essential")
+
+        if [[ ${#missing_deps[@]} -gt 0 ]]; then
+            warn "Missing dependencies: ${BOLD}${missing_deps[*]}${RESET}"
+            if command -v apt-get &>/dev/null; then
+                printf "  ${DIM}Installing via apt-get…${RESET}\n"
+                sudo apt-get update -qq && sudo apt-get install -y -qq curl git build-essential
+                ok "Dependencies installed"
+            elif command -v dnf &>/dev/null; then
+                printf "  ${DIM}Installing via dnf…${RESET}\n"
+                sudo dnf install -y curl git gcc gcc-c++ make
+                ok "Dependencies installed"
+            elif command -v pacman &>/dev/null; then
+                printf "  ${DIM}Installing via pacman…${RESET}\n"
+                sudo pacman -Sy --noconfirm curl git base-devel
+                ok "Dependencies installed"
+            else
+                err "Cannot install dependencies automatically"
+                printf "    ${DIM}Install manually: %s${RESET}\n" "${missing_deps[*]}"
+                return 1
+            fi
+        fi
+    fi
+
+    printf "  ${DIM}Downloading Homebrew installer…${RESET}\n"
+    NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL "$BREW_INSTALL_URL")"
+
+    local prefix
+    prefix="$(brew_prefix "$os" "$(uname -m)")"
+
+    if load_brew_env "$prefix"; then
+        ok "Installed ${DIM}($(brew --version | head -1))${RESET}"
+        printf "\n  ${YELLOW}${CHAR_WARN}${RESET}  Add to your shell profile:\n"
+        printf "    ${DIM}echo 'eval \"\$(%s/bin/brew shellenv)\"' >> ~/.zprofile${RESET}\n" "$prefix"
+        return 0
+    fi
+
+    err "Installation completed but brew not found in PATH"
+    printf "    ${DIM}Expected at: %s/bin/brew${RESET}\n" "$prefix"
+    return 1
+}
+
+main() {
+    local os
+    os="$(detect_os)"
+    install_brew "$os"
+}
+
+main "$@"
