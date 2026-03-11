@@ -26,9 +26,9 @@ final class {{ENTITY}}Factory
      */
     public static function createMany(int $count, array $overrides = []): array
     {
-        return array_map(
+        return \array_map(
             fn () => self::create($overrides),
-            range(1, $count),
+            \range(1, $count),
         );
     }
 }

@@ -26,7 +26,7 @@ final readonly class {{ENTITY}}Controller
         $result = $this->service->list($page, $limit);
 
         return new JsonResponse([
-            'items' => array_map(fn ($item) => {{OUTPUT_TRANSFORM}}, $result['items']),
+            'items' => \array_map(fn ($item) => {{OUTPUT_TRANSFORM}}, $result['items']),
             'total' => $result['total'],
             'page' => $page,
             'limit' => $limit,
@@ -44,7 +44,7 @@ final readonly class {{ENTITY}}Controller
     #[Route('', name: 'create', methods: ['POST'])]
     public function create(Request $request): JsonResponse
     {
-        $data = json_decode($request->getContent(), true, 512, \JSON_THROW_ON_ERROR);
+        $data = \json_decode($request->getContent(), true, 512, \JSON_THROW_ON_ERROR);
 {{VALIDATE_CREATE}}
         $entity = $this->service->create({{CREATE_CALL_ARGS}});
 
@@ -54,7 +54,7 @@ final readonly class {{ENTITY}}Controller
     #[Route('/{id}', name: 'update', methods: ['PUT'])]
     public function update(string $id, Request $request): JsonResponse
     {
-        $data = json_decode($request->getContent(), true, 512, \JSON_THROW_ON_ERROR);
+        $data = \json_decode($request->getContent(), true, 512, \JSON_THROW_ON_ERROR);
 {{VALIDATE_UPDATE}}
         $entity = $this->service->update($id, {{UPDATE_CALL_ARGS}});
 

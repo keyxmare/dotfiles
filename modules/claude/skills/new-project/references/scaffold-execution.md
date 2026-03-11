@@ -71,7 +71,7 @@ Générer à la racine. Mémorise les choix pour les micro-generators. Valider l
 ```json
 {
   "version": "1.0",
-  "skill_version": "2.0.0",
+  "skill_version": "2.3.0",
   "created_at": "<date ISO>",
   "updated_at": "<date ISO>",
   "name": "<nom>",
@@ -172,6 +172,8 @@ Si app web avec backend, générer l'infrastructure commune dans `Shared/` (adva
 - `HealthController.php` — template `health-controller.php.tpl` (toujours, pas seulement si module monitoring)
 - `ReadinessController.php` — template `readiness-controller.php.tpl` (toujours)
 - Enregistrer l'ExceptionListener dans `services.yaml` (tag `kernel.exception`)
+- **Port interfaces** — si des features dépendent de clients externes (API tierces), générer les interfaces Port dans `Domain/Port/` et les binder dans `services.yaml` (voir `references/ddd-features.md` section "Ports").
+- **Fichiers config Symfony manquants** — ne pas oublier les config packages standards (voir `references/web-app/backend.md` section "Packages config Symfony").
 
 Voir la section "Validation & Error Handling" dans `references/web-app/backend.md` et la table "Code structurel" dans `references/ddd-features.md`.
 
@@ -354,7 +356,7 @@ Métriques :
   Relations            : <N>
   Endpoints API        : <N>
   Health endpoints     : /healthz, /readyz
-  Skill version        : 2.0.0
+  Skill version        : 2.3.0
 ```
 
 Calculer via `find <project> -type f | wc -l` et `find <project> -name '*.php' -o -name '*.ts' -o -name '*.vue' | xargs wc -l`.

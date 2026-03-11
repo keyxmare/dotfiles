@@ -17,7 +17,7 @@
 Traces distribuées automatiques — aucune instrumentation manuelle requise :
 
 - `open-telemetry/sdk` + `open-telemetry/exporter-otlp` + `open-telemetry/contrib-auto-symfony` dans `composer.json`.
-- `config/packages/open_telemetry.yaml` — configuration de l'exporter OTLP.
+- `config/packages/open_telemetry.yaml` — configuration minimale. En dev : vide (pas d'exporter configuré). En prod (`when@prod`) : configurer l'endpoint OTLP. Ne pas ajouter de configuration `framework.otel` qui n'existe pas dans Symfony 8 — OTEL est configuré via les variables d'environnement et le SDK PHP.
 - Instrumentation automatique sur HTTP (requests/responses), Doctrine (queries), Messenger (messages).
 - Variables `.env.example` :
   - `OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318`

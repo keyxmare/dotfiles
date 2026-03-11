@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace App\{{CONTEXT}}\Domain\Model;
 
-use App\{{CONTEXT}}\Infrastructure\Persistence\Doctrine\{{ENTITY}}Repository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 {{EVENT_IMPORTS}}
 
-#[ORM\Entity(repositoryClass: {{ENTITY}}Repository::class)]
+#[ORM\Entity]
 #[ORM\Table(name: '{{TABLE_NAME}}')]
 final class {{ENTITY}}
 {

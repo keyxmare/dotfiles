@@ -89,6 +89,7 @@ case "$TYPE" in
           make_dir "backend/src/$ctx/Domain/Model"
           make_dir "backend/src/$ctx/Domain/ValueObject"
           make_dir "backend/src/$ctx/Domain/Repository"
+          make_dir "backend/src/$ctx/Domain/Port"
           make_dir "backend/src/$ctx/Domain/Event"
           make_dir "backend/src/$ctx/Domain/Exception"
           make_dir "backend/src/$ctx/Application/Command"

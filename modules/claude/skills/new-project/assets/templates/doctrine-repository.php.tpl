@@ -50,7 +50,7 @@ final readonly class {{ENTITY}}Repository implements {{ENTITY}}RepositoryInterfa
         $paginator = new Paginator($qb);
 
         return [
-            'items' => iterator_to_array($paginator),
+            'items' => \iterator_to_array($paginator),
             'total' => $paginator->count(),
         ];
     }

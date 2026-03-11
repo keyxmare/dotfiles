@@ -13,7 +13,7 @@ describe('{{ENTITY}}Controller', function () {
         $client->request('GET', '/api/{{ENTITY_PLURAL_KEBAB}}');
 
         expect($client->getResponse()->getStatusCode())->toBe(Response::HTTP_OK);
-        $data = json_decode($client->getResponse()->getContent(), true);
+        $data = \json_decode($client->getResponse()->getContent(), true);
         expect($data)->toHaveKey('items');
         expect($data)->toHaveKey('total');
     });
@@ -26,7 +26,7 @@ describe('{{ENTITY}}Controller', function () {
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
-            json_encode({{CREATE_PAYLOAD}})
+            \json_encode({{CREATE_PAYLOAD}})
         );
 
         expect($client->getResponse()->getStatusCode())->toBe(Response::HTTP_CREATED);
@@ -58,7 +58,7 @@ describe('{{ENTITY}}Controller', function () {
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
-            json_encode({{UPDATE_PAYLOAD}})
+            \json_encode({{UPDATE_PAYLOAD}})
         );
 
         expect($client->getResponse()->getStatusCode())->toBe(Response::HTTP_OK);

@@ -16,7 +16,7 @@ final class {{ENTITY}}ControllerTest extends WebTestCase
         $client->request('GET', '/api/{{ENTITY_PLURAL_KEBAB}}');
 
         self::assertResponseStatusCodeSame(Response::HTTP_OK);
-        $data = json_decode($client->getResponse()->getContent(), true);
+        $data = \json_decode($client->getResponse()->getContent(), true);
         self::assertArrayHasKey('items', $data);
         self::assertArrayHasKey('total', $data);
     }
@@ -31,7 +31,7 @@ final class {{ENTITY}}ControllerTest extends WebTestCase
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
-            json_encode({{CREATE_PAYLOAD}})
+            \json_encode({{CREATE_PAYLOAD}})
         );
 
         self::assertResponseStatusCodeSame(Response::HTTP_CREATED);
@@ -69,7 +69,7 @@ final class {{ENTITY}}ControllerTest extends WebTestCase
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
-            json_encode({{UPDATE_PAYLOAD}})
+            \json_encode({{UPDATE_PAYLOAD}})
         );
 
         self::assertResponseStatusCodeSame(Response::HTTP_OK);

@@ -41,7 +41,7 @@ backend/
 ```
 
 Chaque bounded context :
-- `Domain/` — Model/ (entités avec attributs ORM), ValueObject/, Repository/ (interfaces), Event/, Exception/
+- `Domain/` — Model/ (entités avec attributs ORM), ValueObject/, Repository/ (interfaces), Port/ (interfaces pour clients externes), Event/, Exception/
 - `Application/` — Command/, CommandHandler/, Query/, QueryHandler/, DTO/
 - `Infrastructure/` — Persistence/Doctrine/, Controller/, Messenger/
 
@@ -51,11 +51,22 @@ Les entités utilisent les **PHP attributes Doctrine** directement sur le domain
 
 - **composer.json** — Symfony 8.x, PHP 8.4+, Doctrine ORM (`doctrine/orm`, `doctrine/doctrine-bundle` ^3.2, `doctrine/doctrine-migrations-bundle` ^4.0), PHPUnit, PHPStan, PHP-CS-Fixer, Infection. Si advanced : `symfony/messenger`. Scripts post-install/post-update avec `|| true` (voir stack). `config.allow-plugins` : `symfony/runtime`, `infection/extension-installer`.
 - **phpunit.xml.dist** — Testsuites : Unit, Integration, Functional.
-- **phpstan.neon** — Level max, paths `src/`.
+- **phpstan.neon** — Level max, paths `src/`. Ne pas inclure manuellement `phpstan-symfony` ou `phpstan-doctrine` — ils sont auto-chargés par `phpstan/extension-installer`. Ne pas désactiver des checks (`checkMissingIterableValueType`, `checkGenericClassInNonGenericObjectType`).
 - **.php-cs-fixer.dist.php** — PSR-12, `declare_strict_types` forcé.
 - **.env** — `APP_ENV=dev`, `APP_SECRET=changeme`, `DATABASE_URL` si BDD.
 - **Makefile** — Suivre `~/.claude/stacks/makefile.md`. Targets : install, test, test-coverage, test-mutation, lint, lint-fix, phpstan, rector, rector-dry, audit, outdated, quality, help. Si BDD : db-migrate, db-fixtures, db-reset.
-- **services.yaml** — Si advanced : autowiring par bounded context, bus Messenger (command.bus, query.bus, event.bus).
+- **services.yaml** — Si advanced : autowiring par bounded context, bus Messenger (command.bus, query.bus, event.bus). **Bindings** : binder les interfaces Port aux implémentations concrètes (`App\{Context}\Domain\Port\{Client}Interface: '@App\{Context}\Infrastructure\{Client}'`). Injecter les paramètres de configuration aux clients externes via `bind` (`$gitlabUrl: '%env(GITLAB_URL)%'`, `$gitlabToken: '%env(GITLAB_TOKEN)%'`, etc.). Chaque variable d'environnement utilisée dans un binding doit être documentée dans `.env.example`.
+- **bundles.php** — Doit inclure **tous** les bundles requis. Ne pas oublier `TwigBundle` (requis par Symfony), `DoctrineFixturesBundle` (si fixtures), `WebProfilerBundle` (dev/test), `TwigExtraBundle` (si Twig), `MonologBundle`, `MercureBundle` (si module Mercure).
+- **Packages config Symfony** — En plus de `doctrine.yaml`, `framework.yaml`, `messenger.yaml`, générer les fichiers de config standards manquants :
+  - `config/packages/routing.yaml` — `framework: router: { default_uri: '%env(DEFAULT_URI)%' }` (requis pour la génération d'URLs en CLI).
+  - `config/packages/doctrine_migrations.yaml` — configuration du DoctrineMigrationsBundle.
+  - `config/packages/validator.yaml` — `framework: validation: { email_validation_mode: html5 }`.
+  - `config/packages/property_info.yaml` — `framework: property_info: { enabled: true }`.
+  - `config/packages/twig.yaml` — `twig: { default_path: '%kernel.project_dir%/templates' }` (si TwigBundle).
+  - `config/packages/http_discovery.yaml` — configuration HTTP client discovery (si nyholm/psr7).
+  - `config/preload.php` — fichier de preload PHP pour optimisation opcache.
+  - `templates/` — répertoire vide (requis par TwigBundle).
+- **Doctrine config** — Ne pas ajouter d'options obsolètes dans `doctrine.yaml` : `auto_generate_proxy_classes`, `enable_lazy_ghost_objects` sont les défauts de Doctrine 3 (ne pas les spécifier). `controller_resolver.auto_mapping` est supprimé. Utiliser la version correcte de PostgreSQL (`server_version` dans `doctrine.yaml` doit correspondre à la version dans `versions.json`).
 
 ### Rector
 
@@ -278,7 +289,7 @@ Les filtres sont passés en query string : `GET /api/catalog/products?sortBy=pri
 Si le projet a un backend avec BDD, générer un système de fixtures :
 
 - `doctrine/doctrine-fixtures-bundle` dans `composer.json` (dev dependency).
-- `src/DataFixtures/AppFixtures.php` — fixture principale qui charge toutes les fixtures par context.
+- **Ne pas générer** de `AppFixtures.php` vide — générer directement les fixtures par entité.
 - Une fixture par entité : `src/DataFixtures/{Context}/{Entity}Fixtures.php` (advanced) ou `src/DataFixtures/{Entity}Fixtures.php` (simple).
 - Données réalistes et cohérentes (noms, emails, dates plausibles). Pas de `foo`, `bar`, `test123`.
 - Utiliser `Symfony\Component\Uid\Uuid::v7()` pour les identifiants.

@@ -6,6 +6,8 @@ Règles applicables au skill principal et à tous les micro-generators.
 
 - `declare(strict_types=1)` sur tous les fichiers PHP.
 - `final` et `readonly` sur les classes PHP.
+- **Fonctions PHP namespacées** — toujours préfixer les fonctions built-in avec `\` : `\sprintf()`, `\array_map()`, `\count()`, `\str_starts_with()`, `\json_encode()`, `\iterator_to_array()`, `\explode()`, `\substr()`, `\bin2hex()`, `\random_bytes()`, `\ceil()`, `\strtolower()`, `\array_unique()`, `\range()`, etc.
+- **PHPDoc `@var` sur collections** — annoter les propriétés `array` et `Collection` avec `@var` pour PHPStan level max : `/** @var list<string> */`, `/** @var Collection<int, Entity> */`, `/** @var array<string, mixed> */`.
 - Pas de commentaires dans le code (sauf si `code.comments: true`).
 - **Doctrine : PHP attributes** sur les entités (plus de mapping XML — Symfony 8). Template `entity.php.tpl`.
 - Conventions de nommage : voir `references/ddd-features.md`.

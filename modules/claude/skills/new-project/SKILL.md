@@ -447,7 +447,7 @@ Résumé du projet — <nom>
   Sécurité       headers, rate-limiting, audit
   SSR            oui (Nuxt) / — (Vue.js)
   DDD frontend   directories / layers (Nuxt)
-  Skill version  2.2.0
+  Skill version  2.3.0
   Surcharges     ci.auto_deploy_prod: true
 ```
 

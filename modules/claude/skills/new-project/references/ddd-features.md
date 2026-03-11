@@ -4,7 +4,7 @@
 
 | Opération | Fichiers générés |
 |---|---|
-| CREATE | `Domain/Model/{Entity}.php`, `Domain/Repository/{Entity}RepositoryInterface.php`, `Domain/Event/{Entity}Created.php`, `Application/Command/Create{Entity}Command.php`, `Application/CommandHandler/Create{Entity}Handler.php`, `Application/DTO/Create{Entity}Input.php`, `Infrastructure/Controller/Create{Entity}Controller.php` (`POST /api/{context}/{entities}`), `Infrastructure/Persistence/Doctrine/{Entity}Repository.php` |
+| CREATE | `Domain/Model/{Entity}.php`, `Domain/Repository/{Entity}RepositoryInterface.php`, `Domain/Port/{Client}Interface.php` (si dépendance externe), `Domain/Event/{Entity}Created.php`, `Application/Command/Create{Entity}Command.php`, `Application/CommandHandler/Create{Entity}Handler.php`, `Application/DTO/Create{Entity}Input.php`, `Infrastructure/Controller/Create{Entity}Controller.php` (`POST /api/{context}/{entities}`), `Infrastructure/Persistence/Doctrine/{Entity}Repository.php` |
 | READ | `Application/Query/Get{Entity}Query.php`, `Application/QueryHandler/Get{Entity}Handler.php`, `Application/DTO/{Entity}Output.php`, `Infrastructure/Controller/Get{Entity}Controller.php` (`GET .../{id}`) |
 | LIST | `Application/Query/List{Entities}Query.php` (pagination), `Application/QueryHandler/List{Entities}Handler.php`, `Application/DTO/{Entity}ListOutput.php`, `Infrastructure/Controller/List{Entities}Controller.php` (`GET ...`) |
 | UPDATE | `Domain/Event/{Entity}Updated.php`, `Application/Command/Update{Entity}Command.php`, `Application/CommandHandler/Update{Entity}Handler.php`, `Application/DTO/Update{Entity}Input.php`, `Infrastructure/Controller/Update{Entity}Controller.php` (`PUT .../{id}`) |
@@ -130,6 +130,40 @@ Ces fichiers sont générés une seule fois pendant le scaffold initial (pas par
 | `ErrorOutput` | `error-output.php.tpl` | `Shared/Application/DTO/ErrorOutput.php` | `src/DTO/ErrorOutput.php` |
 | `ExceptionListener` | `exception-listener.php.tpl` | `Shared/Infrastructure/EventListener/ExceptionListener.php` | `src/EventListener/ExceptionListener.php` |
 
+## Ports — interfaces pour clients externes (DDD)
+
+Quand un handler dépend d'un service externe (API tierce, client HTTP, etc.) et non d'un repository, générer une **interface Port** dans `Domain/Port/` :
+
+```
+Domain/Port/{Client}Interface.php     ← interface (contrat)
+Infrastructure/{Client}.php           ← implémentation concrète
+```
+
+Template : `port-interface.php.tpl`.
+
+Le handler dépend de l'interface (Domain layer), jamais de l'implémentation (Infrastructure layer). Le binding se fait dans `services.yaml` :
+
+```yaml
+App\{Context}\Domain\Port\{Client}Interface:
+    alias: App\{Context}\Infrastructure\{Client}
+```
+
+Exemples :
+- `PackageRegistryInterface` → `NpmRegistryClient`, `PackagistClient`
+- `GitLabClientInterface` → `GitLabClient`
+- `OsvApiClientInterface` → `OsvApiClient`
+
+Les clients externes qui nécessitent des paramètres de configuration (URL, token, clé API) doivent les recevoir via le constructeur avec binding explicite dans `services.yaml` :
+
+```yaml
+App\Project\Infrastructure\GitLab\GitLabClient:
+    arguments:
+        $gitlabUrl: '%env(GITLAB_URL)%'
+        $gitlabToken: '%env(GITLAB_TOKEN)%'
+```
+
+---
+
 ## Tests — pyramide complète après chaque feature
 
 ### Unitaires (toujours)
@@ -216,6 +250,8 @@ Fichier généré : `tests/Factory/{Context}/{Entity}Factory.php`
 | DTO Input | `{Action}{Entity}Input` | `CreateProductInput` |
 | DTO Output | `{Entity}Output` | `ProductOutput` |
 | Event | `{Entity}{Action}` (passé composé) | `ProductCreated` |
+| Port interface | `{Client}Interface` | `PackageRegistryInterface`, `GitLabClientInterface` |
+| Repository Interface | `{Entity}RepositoryInterface` | `ProductRepositoryInterface` |
 | Test | `{ClassTestée}Test` | `CreateProductHandlerTest` |
 | Filter DTO | `List{Entities}Query` (avec filters + sortBy) | `ListProductsQuery` |
 | Soft delete trait | `SoftDeletable` | `$deletedAt`, `softDelete()`, `restore()`, `isDeleted()` |
